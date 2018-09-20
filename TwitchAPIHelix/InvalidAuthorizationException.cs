@@ -1,6 +1,4 @@
-extensions: designer.cs generated.cs
-extensions: .cs .cpp .h
-/*
+﻿/*
  *  TwitchAPIHelix - A library to access the Twitch Helix API for .NET 4.7/Mono
  *  Copyright (C) 2018 gmt2001 - https://keybase.io/gmt2001
  *
@@ -17,3 +15,14 @@ extensions: .cs .cpp .h
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+using System;
+
+namespace TwitchAPIHelix
+{
+    /// <summary>
+    /// Indicates a missing or invalid Client ID or OAuth token
+    /// </summary>
+    public class InvalidAuthorizationException : ApplicationException
+    {
+    }
+}

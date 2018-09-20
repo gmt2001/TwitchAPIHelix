@@ -1,6 +1,6 @@
 ﻿/*
  *  TwitchAPIHelix - A library to access the Twitch Helix API for .NET 4.7/Mono
- *  Copyright © 2018 gmt2001 - https://keybase.io/gmt2001
+ *  Copyright (C) 2018 gmt2001 - https://keybase.io/gmt2001
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Affero General Public License as published
