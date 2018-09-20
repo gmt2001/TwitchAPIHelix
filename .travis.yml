@@ -1,0 +1,6 @@
+language: csharp
+solution: TwitchAPIHelix.sln
+mono: latest
+notifications:
+  email: false
+sudo: false
