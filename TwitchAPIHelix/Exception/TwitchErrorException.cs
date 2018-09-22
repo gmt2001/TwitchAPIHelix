@@ -15,14 +15,18 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 using System;
 
-namespace TwitchAPIHelix
+namespace TwitchAPIHelix.Exception
 {
     /// <summary>
-    /// Indicates a missing or invalid Client ID or OAuth token
+    /// Represents a response from Twitch indicating an error, such as not having a required scope
     /// </summary>
-    public class InvalidAuthorizationException : ApplicationException
+    public class TwitchErrorException : ApplicationException
     {
+        public TwitchErrorException(string message) : base(message)
+        {
+        }
     }
 }

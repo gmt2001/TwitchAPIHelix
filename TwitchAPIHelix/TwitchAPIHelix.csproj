@@ -46,11 +46,13 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="InvalidAuthorizationException.cs" />
+    <Compile Include="Exception\AuthorizationRequiredException.cs" />
+    <Compile Include="Exception\OAuthRequiredException.cs" />
+    <Compile Include="TwitchError.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TwitchAPIHelix.cs" />
     <Compile Include="TwitchAPIResponse.cs" />
-    <Compile Include="TwitchError.cs" />
+    <Compile Include="Exception\TwitchErrorException.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

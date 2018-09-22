@@ -16,21 +16,12 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-using System.Runtime.Serialization;
-
-namespace TwitchAPIHelix
+namespace TwitchAPIHelix.Exception
 {
     /// <summary>
-    /// Base class representing a response from the Twitch API
+    /// Indicates an OAuth token is required for the requested API call
     /// </summary>
-    [DataContract]
-    public class TwitchAPIResponse
+    public class OAuthRequiredException : AuthorizationRequiredException
     {
-        /// <summary>
-        /// Default constructor
-        /// </summary>
-        internal TwitchAPIResponse()
-        {
-        }
     }
 }

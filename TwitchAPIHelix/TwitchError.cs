@@ -21,25 +21,25 @@ using System.Runtime.Serialization;
 namespace TwitchAPIHelix
 {
     /// <summary>
-    /// Represents a response from Twitch indicating an error, such as not having a required scope
+    /// Represents an error thrown by Twitch
     /// </summary>
     [DataContract]
-    public class TwitchError : TwitchAPIResponse
+    internal class TwitchError
     {
         /// <summary>
-        /// The HTTP error name returned by Twitch
+        /// The HTTP error description
         /// </summary>
         [DataMember]
         public string error;
 
         /// <summary>
-        /// The HTTP error code returned by Twitch
+        /// The HTTP response code
         /// </summary>
         [DataMember]
         public int status;
 
         /// <summary>
-        /// The error message returned by Twitch
+        /// The error message from Twitch
         /// </summary>
         [DataMember]
         public string message;

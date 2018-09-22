@@ -16,6 +16,13 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+using System;
+using System.IO;
+using System.Net;
+using System.Net.Cache;
+using System.Runtime.Serialization.Json;
+using System.Text;
+
 namespace TwitchAPIHelix
 {
     /// <summary>
@@ -46,6 +53,22 @@ namespace TwitchAPIHelix
         {
             GET, POST, PUT, DELETE
         };
+        /// <summary>
+        /// Unix epoch
+        /// </summary>
+        private static readonly DateTime epoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+        /// <summary>
+        /// The rate-limit assigned by Twitch
+        /// </summary>
+        private int ratelimit_limit = 1;
+        /// <summary>
+        /// Remaining requests within the current rate-limit window
+        /// </summary>
+        private int ratelimit_remaining = 1;
+        /// <summary>
+        /// When the rate-limit window resets
+        /// </summary>
+        private DateTime ratelimit_reset = DateTime.UtcNow;
 
         /// <summary>
         /// Constructor
@@ -56,6 +79,190 @@ namespace TwitchAPIHelix
         {
             this.clientidOrOauth = clientidOrOauth.Replace("oauth:", "");
             this.isOauth = isOauth;
+        }
+
+        /// <summary>
+        /// Executes an API call and returns the result
+        /// </summary>
+        /// <param name="type">The HTTP method to use</param>
+        /// <param name="url">The URL to query</param>
+        /// <param name="post">If set, post data to send</param>
+        /// <param name="isJson">If true, the post data is JSON</param>
+        /// <param name="oauth">If set, overrides the OAuth token to use for the request</param>
+        /// <returns>The result from Twitch</returns>
+        /// <exception cref="Exception.AuthorizationRequiredException">Thrown if both <see cref="TwitchAPIHelix.clientidOrOauth"/> and <paramref name="oauth"/> are not set</exception>
+        /// <exception cref="Exception.TwitchErrorException">Thrown if Twitch returns an error</exception>
+        /// <exception cref="System.Net.WebException">Thrown if the HTTP request fails</exception>
+        private string GetData(request_type type, string url, string post, bool isJson, string oauth)
+        {
+            string ret = "";
+
+            if (clientidOrOauth.Length == 0 && (oauth == null || oauth.Length == 0))
+            {
+                throw new Exception.AuthorizationRequiredException();
+            }
+
+            try
+            {
+                if (url.Contains("?"))
+                {
+                    url += "&utcnow=" + DateTime.UtcNow.ToBinary();
+                }
+                else
+                {
+                    url += "?utcnow=" + DateTime.UtcNow.ToBinary();
+                }
+
+                Uri uri = new Uri(url);
+                HttpWebRequest req = (HttpWebRequest)WebRequest.Create(uri);
+
+                if (isJson)
+                {
+                    req.ContentType = "application/json";
+                }
+                else
+                {
+                    req.ContentType = "application/x-www-form-urlencoded";
+                }
+
+                if (oauth != null && oauth.Length > 0)
+                {
+                    req.Headers.Add("Authorization", "Bearer " + oauth.Replace("oauth:", ""));
+                }
+                else if (this.isOauth)
+                {
+                    req.Headers.Add("Authorization", "Bearer " + this.clientidOrOauth);
+                }
+                else
+                {
+                    req.Headers.Add("Client-ID", this.clientidOrOauth);
+                }
+
+                req.Method = type.ToString();
+                req.CachePolicy = new RequestCachePolicy(RequestCacheLevel.BypassCache);
+                req.Timeout = timeout;
+                req.UserAgent = user_agent;
+                req.KeepAlive = true;
+                req.Proxy = null;
+
+                if (isJson && post.Length == 0)
+                {
+                    post = "{}";
+                }
+
+                if (post.Length > 0)
+                {
+                    Stream requestStream = req.GetRequestStream();
+                    requestStream.ReadTimeout = timeout;
+                    requestStream.WriteTimeout = timeout;
+
+                    using (StreamWriter reqStream = new StreamWriter(requestStream))
+                    {
+                        reqStream.Write(post);
+                    }
+                }
+
+                using (HttpWebResponse res = (HttpWebResponse)req.GetResponse())
+                {
+                    Stream responseStream = res.GetResponseStream();
+                    responseStream.ReadTimeout = timeout;
+                    responseStream.WriteTimeout = timeout;
+
+                    if (oauth == null || oauth.Length == 0)
+                    {
+                        Int32.TryParse(res.Headers.Get("Ratelimit-Limit"), out this.ratelimit_limit);
+                        Int32.TryParse(res.Headers.Get("Ratelimit-Remaining"), out this.ratelimit_remaining);
+                        Int64.TryParse(res.Headers.Get("Ratelimit-Reset"), out long ts);
+
+                        this.ratelimit_reset = epoch.AddSeconds(ts);
+                    }
+
+                    using (StreamReader resStream = new StreamReader(responseStream))
+                    {
+                        ret = resStream.ReadToEnd();
+                    }
+
+                    if ((int)res.StatusCode < 200 || (int)res.StatusCode > 299)
+                    {
+                        DataContractJsonSerializer js = new DataContractJsonSerializer(typeof(TwitchError));
+
+                        MemoryStream ms = null;
+                        TwitchError te;
+
+                        try
+                        {
+                            ms = new MemoryStream(Encoding.UTF8.GetBytes(ret));
+
+                            ms.Position = 0;
+                            te = (TwitchError)js.ReadObject(ms);
+                        }
+                        finally
+                        {
+                            if (ms != null)
+                            {
+                                ms.Dispose();
+                            }
+                        }
+
+                        throw new Exception.TwitchErrorException(te.status + ": " + te.message);
+                    }
+                }
+            }
+            catch (System.Exception e)
+            {
+                if (e.GetType() == typeof(WebException))
+                {
+                    if (((WebException)e).Status == WebExceptionStatus.ProtocolError)
+                    {
+                        using (HttpWebResponse res = (HttpWebResponse)((WebException)e).Response)
+                        {
+                            Stream responseStream = res.GetResponseStream();
+                            responseStream.ReadTimeout = timeout;
+                            responseStream.WriteTimeout = timeout;
+
+                            using (StreamReader resStream = new StreamReader(responseStream))
+                            {
+                                ret = resStream.ReadToEnd();
+                            }
+
+                            if ((int)res.StatusCode < 200 || (int)res.StatusCode > 299)
+                            {
+                                DataContractJsonSerializer js = new DataContractJsonSerializer(typeof(TwitchError));
+
+                                MemoryStream ms = null;
+                                TwitchError te;
+
+                                try
+                                {
+                                    ms = new MemoryStream(Encoding.UTF8.GetBytes(ret));
+
+                                    ms.Position = 0;
+                                    te = (TwitchError)js.ReadObject(ms);
+                                }
+                                finally
+                                {
+                                    if (ms != null)
+                                    {
+                                        ms.Dispose();
+                                    }
+                                }
+
+                                throw new Exception.TwitchErrorException(te.status + ": " + te.message);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        throw;
+                    }
+                }
+                else
+                {
+                    throw;
+                }
+            }
+
+            return ret;
         }
     }
 }
