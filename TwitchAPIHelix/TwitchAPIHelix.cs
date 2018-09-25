@@ -22,6 +22,7 @@ using System.Net;
 using System.Net.Cache;
 using System.Runtime.Serialization.Json;
 using System.Text;
+using System.Threading;
 
 namespace TwitchAPIHelix
 {
@@ -33,11 +34,11 @@ namespace TwitchAPIHelix
         /// <summary>
         /// Either a valid Client ID or a valid OAuth token from Twitch
         /// </summary>
-        private string clientidOrOauth;
+        private readonly string clientidOrOauth;
         /// <summary>
         /// If true, clientidOrOauth is an OAuth token
         /// </summary>
-        private bool isOauth;
+        private readonly bool isOauth;
         /// <summary>
         /// User agent for requests
         /// </summary>
@@ -60,15 +61,19 @@ namespace TwitchAPIHelix
         /// <summary>
         /// The rate-limit assigned by Twitch
         /// </summary>
-        private int ratelimit_limit = 1;
+        private int ratelimit_limit = 30;
         /// <summary>
         /// Remaining requests within the current rate-limit window
         /// </summary>
-        private int ratelimit_remaining = 1;
+        private int ratelimit_remaining = 30;
         /// <summary>
         /// When the rate-limit window resets
         /// </summary>
         private DateTime ratelimit_reset = DateTime.UtcNow;
+        /// <summary>
+        /// Lock object for GetData
+        /// </summary>
+        private static readonly object getDataLock = new object();
 
         /// <summary>
         /// Constructor
@@ -95,9 +100,39 @@ namespace TwitchAPIHelix
         /// <exception cref="System.Net.WebException">Thrown if the HTTP request fails</exception>
         private string GetData(request_type type, string url, string post, bool isJson, string oauth)
         {
+            goto CheckLimit;
+        WaitForLimit:
+            if (this.ratelimit_reset.CompareTo(DateTime.UtcNow) > 0)
+            {
+                Thread.Sleep(this.ratelimit_reset - DateTime.UtcNow);
+            }
+            else
+            {
+                lock (getDataLock)
+                {
+                    this.ratelimit_remaining = this.ratelimit_limit;
+                    this.ratelimit_reset = DateTime.UtcNow.AddSeconds(60);
+                }
+            }
+
+        CheckLimit:
+            lock (getDataLock)
+            {
+                if (this.ratelimit_remaining > 0)
+                {
+                    this.ratelimit_remaining--;
+                    goto ExecuteRequest;
+                }
+                else
+                {
+                    goto WaitForLimit;
+                }
+            }
+
+        ExecuteRequest:
             string ret = "";
 
-            if (clientidOrOauth.Length == 0 && (oauth == null || oauth.Length == 0))
+            if (this.clientidOrOauth.Length == 0 && (oauth == null || oauth.Length == 0))
             {
                 throw new Exception.AuthorizationRequiredException();
             }
@@ -106,15 +141,17 @@ namespace TwitchAPIHelix
             {
                 if (url.Contains("?"))
                 {
-                    url += "&utcnow=" + DateTime.UtcNow.ToBinary();
+                    url += "&";
                 }
                 else
                 {
-                    url += "?utcnow=" + DateTime.UtcNow.ToBinary();
+                    url += "?";
                 }
 
+                url += "tick=" + (int) Math.Floor(DateTimeOffset.UtcNow.ToUnixTimeSeconds() / 30.0);
+
                 Uri uri = new Uri(url);
-                HttpWebRequest req = (HttpWebRequest)WebRequest.Create(uri);
+                HttpWebRequest req = (HttpWebRequest) WebRequest.Create(uri);
 
                 if (isJson)
                 {
@@ -139,11 +176,10 @@ namespace TwitchAPIHelix
                 }
 
                 req.Method = type.ToString();
-                req.CachePolicy = new RequestCachePolicy(RequestCacheLevel.BypassCache);
+                req.CachePolicy = new HttpRequestCachePolicy(HttpRequestCacheLevel.CacheIfAvailable);
                 req.Timeout = timeout;
                 req.UserAgent = user_agent;
                 req.KeepAlive = true;
-                req.Proxy = null;
 
                 if (isJson && post.Length == 0)
                 {
@@ -162,7 +198,7 @@ namespace TwitchAPIHelix
                     }
                 }
 
-                using (HttpWebResponse res = (HttpWebResponse)req.GetResponse())
+                using (HttpWebResponse res = (HttpWebResponse) req.GetResponse())
                 {
                     Stream responseStream = res.GetResponseStream();
                     responseStream.ReadTimeout = timeout;
@@ -170,10 +206,11 @@ namespace TwitchAPIHelix
 
                     if (oauth == null || oauth.Length == 0)
                     {
-                        Int32.TryParse(res.Headers.Get("Ratelimit-Limit"), out this.ratelimit_limit);
-                        Int32.TryParse(res.Headers.Get("Ratelimit-Remaining"), out this.ratelimit_remaining);
-                        Int64.TryParse(res.Headers.Get("Ratelimit-Reset"), out long ts);
+                        int.TryParse(res.Headers.Get("Ratelimit-Limit"), out this.ratelimit_limit);
+                        int.TryParse(res.Headers.Get("Ratelimit-Remaining"), out this.ratelimit_remaining);
+                        long.TryParse(res.Headers.Get("Ratelimit-Reset"), out long ts);
 
+                        this.ratelimit_limit = Math.Max(this.ratelimit_limit, 30);
                         this.ratelimit_reset = epoch.AddSeconds(ts);
                     }
 
@@ -182,7 +219,7 @@ namespace TwitchAPIHelix
                         ret = resStream.ReadToEnd();
                     }
 
-                    if ((int)res.StatusCode < 200 || (int)res.StatusCode > 299)
+                    if ((int) res.StatusCode < 200 || (int) res.StatusCode > 299)
                     {
                         DataContractJsonSerializer js = new DataContractJsonSerializer(typeof(TwitchError));
 
@@ -191,10 +228,11 @@ namespace TwitchAPIHelix
 
                         try
                         {
-                            ms = new MemoryStream(Encoding.UTF8.GetBytes(ret));
-
-                            ms.Position = 0;
-                            te = (TwitchError)js.ReadObject(ms);
+                            ms = new MemoryStream(Encoding.UTF8.GetBytes(ret))
+                            {
+                                Position = 0
+                            };
+                            te = (TwitchError) js.ReadObject(ms);
                         }
                         finally
                         {
@@ -212,9 +250,9 @@ namespace TwitchAPIHelix
             {
                 if (e.GetType() == typeof(WebException))
                 {
-                    if (((WebException)e).Status == WebExceptionStatus.ProtocolError)
+                    if (((WebException) e).Status == WebExceptionStatus.ProtocolError)
                     {
-                        using (HttpWebResponse res = (HttpWebResponse)((WebException)e).Response)
+                        using (HttpWebResponse res = (HttpWebResponse) ((WebException) e).Response)
                         {
                             Stream responseStream = res.GetResponseStream();
                             responseStream.ReadTimeout = timeout;
@@ -225,7 +263,7 @@ namespace TwitchAPIHelix
                                 ret = resStream.ReadToEnd();
                             }
 
-                            if ((int)res.StatusCode < 200 || (int)res.StatusCode > 299)
+                            if ((int) res.StatusCode < 200 || (int) res.StatusCode > 299)
                             {
                                 DataContractJsonSerializer js = new DataContractJsonSerializer(typeof(TwitchError));
 
@@ -234,10 +272,11 @@ namespace TwitchAPIHelix
 
                                 try
                                 {
-                                    ms = new MemoryStream(Encoding.UTF8.GetBytes(ret));
-
-                                    ms.Position = 0;
-                                    te = (TwitchError)js.ReadObject(ms);
+                                    ms = new MemoryStream(Encoding.UTF8.GetBytes(ret))
+                                    {
+                                        Position = 0
+                                    };
+                                    te = (TwitchError) js.ReadObject(ms);
                                 }
                                 finally
                                 {
