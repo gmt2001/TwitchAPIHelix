@@ -16,39 +16,15 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-using System.Runtime.Serialization;
+using System;
 
-namespace TwitchAPIHelix
+namespace TwitchAPIHelix.Exceptions
 {
     /// <summary>
-    /// Represents an error thrown by Twitch
+    /// Indicates a missing or invalid Client ID or OAuth token
     /// </summary>
-    [DataContract]
-    internal class TwitchError
+    [Serializable]
+    public class AuthorizationRequiredException : ApplicationException
     {
-        /// <summary>
-        /// The HTTP error description
-        /// </summary>
-        [DataMember]
-        public string error;
-
-        /// <summary>
-        /// The error message from Twitch
-        /// </summary>
-        [DataMember]
-        public string message;
-
-        /// <summary>
-        /// The HTTP response code
-        /// </summary>
-        [DataMember]
-        public int status;
-
-        /// <summary>
-        /// Default constructor
-        /// </summary>
-        internal TwitchError()
-        {
-        }
     }
 }

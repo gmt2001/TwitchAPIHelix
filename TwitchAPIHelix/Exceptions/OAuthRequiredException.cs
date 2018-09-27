@@ -16,7 +16,7 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-namespace TwitchAPIHelix.Exception
+namespace TwitchAPIHelix.Exceptions
 {
     /// <summary>
     /// Indicates an OAuth token is required for the requested API call

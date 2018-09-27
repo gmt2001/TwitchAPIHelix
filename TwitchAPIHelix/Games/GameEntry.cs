@@ -1,4 +1,4 @@
-ï»¿/*
+/*
  *  TwitchAPIHelix - A library to access the Twitch Helix API for .NET 4.7/Mono
  *  Copyright (C) 2018 gmt2001 - https://keybase.io/gmt2001
  *
@@ -16,16 +16,38 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-using System;
+using System.Runtime.Serialization;
 
-namespace TwitchAPIHelix.Exception
+namespace TwitchAPIHelix.Games
 {
     /// <summary>
-    /// Represents a response from Twitch indicating an error, such as not having a required scope
+    /// Represents an entry containing data about a game
     /// </summary>
-    public class TwitchErrorException : ApplicationException
+    [DataContract]
+    public class GameEntry : TwitchAPIResponse
     {
-        public TwitchErrorException(string message) : base(message)
+        /// <summary>
+        /// Template URL for the game’s box art
+        /// </summary>
+        [DataMember]
+        public string box_art_url;
+
+        /// <summary>
+        /// Game ID
+        /// </summary>
+        [DataMember]
+        public string id;
+
+        /// <summary>
+        /// Game name
+        /// </summary>
+        [DataMember]
+        public string name;
+
+        /// <summary>
+        /// Default constructor
+        /// </summary>
+        internal GameEntry()
         {
         }
     }

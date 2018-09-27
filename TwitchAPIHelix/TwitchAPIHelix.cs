@@ -32,48 +32,62 @@ namespace TwitchAPIHelix
     public class TwitchAPIHelix
     {
         /// <summary>
-        /// Either a valid Client ID or a valid OAuth token from Twitch
+        /// Base URL for Helix requests
         /// </summary>
-        private readonly string clientidOrOauth;
-        /// <summary>
-        /// If true, clientidOrOauth is an OAuth token
-        /// </summary>
-        private readonly bool isOauth;
-        /// <summary>
-        /// User agent for requests
-        /// </summary>
-        private static readonly string user_agent = "TwitchAPIHelix/1.0";
-        /// <summary>
-        /// Request timeout
-        /// </summary>
-        private static readonly int timeout = 5 * 1000;
-        /// <summary>
-        /// Valid HTTP methods for requests
-        /// </summary>
-        private enum request_type
-        {
-            GET, POST, PUT, DELETE
-        };
+        private static readonly string base_url = "https://api.twitch.tv/helix/";
+
         /// <summary>
         /// Unix epoch
         /// </summary>
         private static readonly DateTime epoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-        /// <summary>
-        /// The rate-limit assigned by Twitch
-        /// </summary>
-        private int ratelimit_limit = 30;
-        /// <summary>
-        /// Remaining requests within the current rate-limit window
-        /// </summary>
-        private int ratelimit_remaining = 30;
-        /// <summary>
-        /// When the rate-limit window resets
-        /// </summary>
-        private DateTime ratelimit_reset = DateTime.UtcNow;
+
         /// <summary>
         /// Lock object for GetData
         /// </summary>
         private static readonly object getDataLock = new object();
+
+        /// <summary>
+        /// Request timeout
+        /// </summary>
+        private static readonly int timeout = 5 * 1000;
+
+        /// <summary>
+        /// User agent for requests
+        /// </summary>
+        private static readonly string user_agent = "TwitchAPIHelix/1.0";
+
+        /// <summary>
+        /// Either a valid Client ID or a valid OAuth token from Twitch
+        /// </summary>
+        private readonly string clientidOrOauth;
+
+        /// <summary>
+        /// If true, clientidOrOauth is an OAuth token
+        /// </summary>
+        private readonly bool isOauth;
+
+        /// <summary>
+        /// The rate-limit assigned by Twitch
+        /// </summary>
+        private int ratelimit_limit = 30;
+
+        /// <summary>
+        /// Remaining requests within the current rate-limit window
+        /// </summary>
+        private int ratelimit_remaining = 30;
+
+        /// <summary>
+        /// When the rate-limit window resets
+        /// </summary>
+        private DateTime ratelimit_reset = DateTime.UtcNow;
+
+        /// <summary>
+        /// Valid HTTP methods for requests
+        /// </summary>
+        private enum Request_type
+        {
+            GET, POST, PUT, DELETE
+        };
 
         /// <summary>
         /// Constructor
@@ -88,6 +102,8 @@ namespace TwitchAPIHelix
 
         /// <summary>
         /// Executes an API call and returns the result
+        ///
+        /// <para>If using the ClientID or OAuth provided to the constructor, enforces the rate-limit</para>
         /// </summary>
         /// <param name="type">The HTTP method to use</param>
         /// <param name="url">The URL to query</param>
@@ -95,11 +111,16 @@ namespace TwitchAPIHelix
         /// <param name="isJson">If true, the post data is JSON</param>
         /// <param name="oauth">If set, overrides the OAuth token to use for the request</param>
         /// <returns>The result from Twitch</returns>
-        /// <exception cref="Exception.AuthorizationRequiredException">Thrown if both <see cref="TwitchAPIHelix.clientidOrOauth"/> and <paramref name="oauth"/> are not set</exception>
-        /// <exception cref="Exception.TwitchErrorException">Thrown if Twitch returns an error</exception>
+        /// <exception cref="Exceptions.AuthorizationRequiredException">Thrown if both <see cref="TwitchAPIHelix.clientidOrOauth"/> and <paramref name="oauth"/> are not set</exception>
+        /// <exception cref="Exceptions.TwitchErrorException">Thrown if Twitch returns an error</exception>
         /// <exception cref="System.Net.WebException">Thrown if the HTTP request fails</exception>
-        private string GetData(request_type type, string url, string post, bool isJson, string oauth)
+        private string GetData(Request_type type, string url, string post, bool isJson, string oauth)
         {
+            if (oauth != null && oauth.Length > 0)
+            {
+                goto ExecuteRequest;
+            }
+
             goto CheckLimit;
         WaitForLimit:
             if (this.ratelimit_reset.CompareTo(DateTime.UtcNow) > 0)
@@ -108,7 +129,7 @@ namespace TwitchAPIHelix
             }
             else
             {
-                lock (getDataLock)
+                lock (TwitchAPIHelix.getDataLock)
                 {
                     this.ratelimit_remaining = this.ratelimit_limit;
                     this.ratelimit_reset = DateTime.UtcNow.AddSeconds(60);
@@ -116,7 +137,7 @@ namespace TwitchAPIHelix
             }
 
         CheckLimit:
-            lock (getDataLock)
+            lock (TwitchAPIHelix.getDataLock)
             {
                 if (this.ratelimit_remaining > 0)
                 {
@@ -134,33 +155,19 @@ namespace TwitchAPIHelix
 
             if (this.clientidOrOauth.Length == 0 && (oauth == null || oauth.Length == 0))
             {
-                throw new Exception.AuthorizationRequiredException();
+                throw new Exceptions.AuthorizationRequiredException();
             }
 
             try
             {
-                if (url.Contains("?"))
-                {
-                    url += "&";
-                }
-                else
-                {
-                    url += "?";
-                }
+                url += url.Contains("?") ? "&" : "?";
 
-                url += "tick=" + (int) Math.Floor(DateTimeOffset.UtcNow.ToUnixTimeSeconds() / 30.0);
+                url += "tick=" + (int)Math.Floor(DateTimeOffset.UtcNow.ToUnixTimeSeconds() / 30.0);
 
                 Uri uri = new Uri(url);
-                HttpWebRequest req = (HttpWebRequest) WebRequest.Create(uri);
+                HttpWebRequest req = (HttpWebRequest)WebRequest.Create(uri);
 
-                if (isJson)
-                {
-                    req.ContentType = "application/json";
-                }
-                else
-                {
-                    req.ContentType = "application/x-www-form-urlencoded";
-                }
+                req.ContentType = isJson ? "application/json" : "application/x-www-form-urlencoded";
 
                 if (oauth != null && oauth.Length > 0)
                 {
@@ -198,7 +205,7 @@ namespace TwitchAPIHelix
                     }
                 }
 
-                using (HttpWebResponse res = (HttpWebResponse) req.GetResponse())
+                using (HttpWebResponse res = (HttpWebResponse)req.GetResponse())
                 {
                     Stream responseStream = res.GetResponseStream();
                     responseStream.ReadTimeout = timeout;
@@ -219,7 +226,7 @@ namespace TwitchAPIHelix
                         ret = resStream.ReadToEnd();
                     }
 
-                    if ((int) res.StatusCode < 200 || (int) res.StatusCode > 299)
+                    if ((int)res.StatusCode < 200 || (int)res.StatusCode > 299)
                     {
                         DataContractJsonSerializer js = new DataContractJsonSerializer(typeof(TwitchError));
 
@@ -232,7 +239,7 @@ namespace TwitchAPIHelix
                             {
                                 Position = 0
                             };
-                            te = (TwitchError) js.ReadObject(ms);
+                            te = (TwitchError)js.ReadObject(ms);
                         }
                         finally
                         {
@@ -242,7 +249,7 @@ namespace TwitchAPIHelix
                             }
                         }
 
-                        throw new Exception.TwitchErrorException(te.status + ": " + te.message);
+                        throw new Exceptions.TwitchErrorException(te.status + ": " + te.message);
                     }
                 }
             }
@@ -250,9 +257,9 @@ namespace TwitchAPIHelix
             {
                 if (e.GetType() == typeof(WebException))
                 {
-                    if (((WebException) e).Status == WebExceptionStatus.ProtocolError)
+                    if (((WebException)e).Status == WebExceptionStatus.ProtocolError)
                     {
-                        using (HttpWebResponse res = (HttpWebResponse) ((WebException) e).Response)
+                        using (HttpWebResponse res = (HttpWebResponse)((WebException)e).Response)
                         {
                             Stream responseStream = res.GetResponseStream();
                             responseStream.ReadTimeout = timeout;
@@ -263,7 +270,7 @@ namespace TwitchAPIHelix
                                 ret = resStream.ReadToEnd();
                             }
 
-                            if ((int) res.StatusCode < 200 || (int) res.StatusCode > 299)
+                            if ((int)res.StatusCode < 200 || (int)res.StatusCode > 299)
                             {
                                 DataContractJsonSerializer js = new DataContractJsonSerializer(typeof(TwitchError));
 
@@ -276,7 +283,7 @@ namespace TwitchAPIHelix
                                     {
                                         Position = 0
                                     };
-                                    te = (TwitchError) js.ReadObject(ms);
+                                    te = (TwitchError)js.ReadObject(ms);
                                 }
                                 finally
                                 {
@@ -286,7 +293,7 @@ namespace TwitchAPIHelix
                                     }
                                 }
 
-                                throw new Exception.TwitchErrorException(te.status + ": " + te.message);
+                                throw new Exceptions.TwitchErrorException(te.status + ": " + te.message);
                             }
                         }
                     }
@@ -302,6 +309,65 @@ namespace TwitchAPIHelix
             }
 
             return ret;
+        }
+
+        /// <summary>
+        /// Gets game information by game ID or name
+        ///
+        /// <para>For a query to be valid, name and/or id must be specified</para>
+        /// </summary>
+        /// <param name="id">Game ID. At most 100 id values can be specified</param>
+        /// <param name="name">Game name. The name must be an exact match. For instance,
+        /// “Pokemon” will not return a list of Pokemon games; instead, query the specific
+        /// Pokemon game(s) in which you are interested. At most 100 name values can be specified</param>
+        /// <returns>An array of matching games</returns>
+        /// <exception cref="ArgumentException">Thrown if both id and name are not provided</exception>
+        /// <exception cref="Exceptions.AuthorizationRequiredException">Thrown if <see cref="TwitchAPIHelix.clientidOrOauth"/> is not set</exception>
+        /// <exception cref="Exceptions.TwitchErrorException">Thrown if Twitch returns an error</exception>
+        /// <exception cref="System.Net.WebException">Thrown if the HTTP request fails</exception>
+        public Games.GamesList GetGames(string[] id, string[] name)
+        {
+            if ((id == null || id.Length == 0 || id[0].Length == 0) && (name == null || name.Length == 0 || name[0].Length == 0))
+            {
+                throw new ArgumentException("Must provide at least one name or id");
+            }
+
+            Games.GamesList obj;
+
+            try
+            {
+                string param = id != null && id.Length > 0 ? "id=" + string.Join("&id=", id) : "";
+                param += id != null && id.Length > 0 && name != null && name.Length > 0 ? "&" : "";
+                param += name != null && name.Length > 0 ? "name=" + string.Join("&name=", name) : "";
+
+                string data = this.GetData(Request_type.GET, TwitchAPIHelix.base_url + "games?" + param, "", false, null);
+
+                DataContractJsonSerializer js = new DataContractJsonSerializer(typeof(Games.GamesList));
+
+                MemoryStream ms = null;
+
+                try
+                {
+                    ms = new MemoryStream(Encoding.UTF8.GetBytes(data))
+                    {
+                        Position = 0
+                    };
+                    obj = (Games.GamesList)js.ReadObject(ms);
+                }
+                finally
+                {
+                    if (ms != null)
+                    {
+                        ms.Dispose();
+                    }
+                }
+            }
+            catch (System.Exception)
+            {
+                throw;
+            }
+
+            return obj;
         }
     }
 }

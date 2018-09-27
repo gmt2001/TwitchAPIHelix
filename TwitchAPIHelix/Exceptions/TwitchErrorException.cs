@@ -18,12 +18,16 @@
 
 using System;
 
-namespace TwitchAPIHelix.Exception
+namespace TwitchAPIHelix.Exceptions
 {
     /// <summary>
-    /// Indicates a missing or invalid Client ID or OAuth token
+    /// Represents a response from Twitch indicating an error, such as not having a required scope
     /// </summary>
-    public class AuthorizationRequiredException : ApplicationException
+    [Serializable]
+    public class TwitchErrorException : ApplicationException
     {
+        public TwitchErrorException(string message) : base(message)
+        {
+        }
     }
 }
