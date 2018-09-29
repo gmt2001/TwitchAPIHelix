@@ -322,7 +322,7 @@ namespace TwitchAPIHelix
         /// “Pokemon” will not return a list of Pokemon games; instead, query the specific
         /// Pokemon game(s) in which you are interested. At most 100 name values can be specified</param>
         /// <returns>An array of matching games</returns>
-        /// <exception cref="ArgumentException">Thrown if both id and name are not provided</exception>
+        /// <exception cref="ArgumentException">Thrown if both <paramref name="id"/> and <paramref name="name"/> are not provided</exception>
         /// <exception cref="Exceptions.AuthorizationRequiredException">Thrown if <see cref="TwitchAPIHelix.clientidOrOauth"/> is not set</exception>
         /// <exception cref="Exceptions.TwitchErrorException">Thrown if Twitch returns an error</exception>
         /// <exception cref="System.Net.WebException">Thrown if the HTTP request fails</exception>
@@ -338,7 +338,7 @@ namespace TwitchAPIHelix
             try
             {
                 string param = id != null && id.Length > 0 ? "id=" + string.Join("&id=", id) : "";
-                param += id != null && id.Length > 0 && name != null && name.Length > 0 ? "&" : "";
+                param += param.Length > 0 && name != null && name.Length > 0 ? "&" : "";
                 param += name != null && name.Length > 0 ? "name=" + string.Join("&name=", name) : "";
 
                 string data = this.GetData(Request_type.GET, TwitchAPIHelix.base_url + "games?" + param, "", false, null);
@@ -381,7 +381,7 @@ namespace TwitchAPIHelix
         /// “Pokemon” will not return a list of Pokemon games; instead, query the specific
         /// Pokemon game(s) in which you are interested. At most 100 name values can be specified</param>
         /// <returns>An array of matching games</returns>
-        /// <exception cref="ArgumentException">Thrown if both id and name are not provided</exception>
+        /// <exception cref="ArgumentException">Thrown if both <paramref name="id"/> and <paramref name="name"/> are not provided</exception>
         /// <exception cref="Exceptions.AuthorizationRequiredException">Thrown if <see cref="TwitchAPIHelix.clientidOrOauth"/> is not set</exception>
         /// <exception cref="Exceptions.TwitchErrorException">Thrown if Twitch returns an error</exception>
         /// <exception cref="System.Net.WebException">Thrown if the HTTP request fails</exception>
@@ -399,14 +399,16 @@ namespace TwitchAPIHelix
         /// <exception cref="Exceptions.AuthorizationRequiredException">Thrown if <see cref="TwitchAPIHelix.clientidOrOauth"/> is not set</exception>
         /// <exception cref="Exceptions.TwitchErrorException">Thrown if Twitch returns an error</exception>
         /// <exception cref="System.Net.WebException">Thrown if the HTTP request fails</exception>
-        public Games.GamesList GetTopGames(string after,  string before, int first)
+        public Games.GamesList GetTopGames(string after, string before, int first)
         {
             Games.GamesList obj;
+
+            first = Math.Min(100, Math.Max(1, first));
 
             try
             {
                 string param = after != null && after.Length > 0 ? "after=" + after : before != null && before.Length > 0 ? "before=" + before : "";
-                param += (after != null && after.Length > 0) || (before != null && before.Length > 0) ? "&" : "";
+                param += param.Length > 0 ? "&" : "";
                 param += "first=" + first;
 
                 string data = this.GetData(Request_type.GET, TwitchAPIHelix.base_url + "games/top?" + param, "", false, null);
@@ -452,5 +454,98 @@ namespace TwitchAPIHelix
         /// <exception cref="Exceptions.TwitchErrorException">Thrown if Twitch returns an error</exception>
         /// <exception cref="System.Net.WebException">Thrown if the HTTP request fails</exception>
         public Task<Games.GamesList> GetTopGamesAsync(string after, string before, int first) => Task.Run<Games.GamesList>(() => this.GetTopGames(after, before, first));
+
+        /// <summary>
+        /// Gets a ranked list of Bits leaderboard information for an authorized broadcaster
+        /// 
+        /// <para>Required scope: bits:read</para>
+        /// </summary>
+        /// <param name="count">Number of results to be returned. Maximum: 100. Default: 10</param>
+        /// <param name="period">(Optional) Time period over which data is aggregated (PST time zone).
+        /// This parameter interacts with started_at. Valid values are given below. Default: "all".
+        /// <para>"day" - 00:00:00 on the day specified in started_at, through 00:00:00 on the following day. /////
+        /// "week" - 00:00:00 on Monday of the week specified in started_at, through 00:00:00 on the following Monday. /////
+        /// "month" - 00:00:00 on the first day of the month specified in started_at, through 00:00:00 on the first day of the following month. /////
+        /// "year" - 00:00:00 on the first day of the year specified in started_at, through 00:00:00 on the first day of the following year. /////
+        /// "all" - The lifetime of the broadcaster's channel. If this is specified (or used by default), started_at is ignored</para></param>
+        /// <param name="started_at">(Optional) Timestamp for the period over which the returned data is aggregated. Must be in RFC 3339 format. If this is not
+        /// provided, data is aggregated over the current period; e.g., the current day/week/month/year. This value is ignored if period is "all".
+        /// Any + operator should be URL encoded</param>
+        /// <param name="user_id">(Optional) ID of the user whose results are returned; i.e., the person who paid for the Bits.
+        /// If user_id is not provided, the endpoint returns the Bits leaderboard data across top users (subject to the value of count)</param>
+        /// <param name="oauth">(Optional) If provided, overrides <see cref="TwitchAPIHelix.clientidOrOauth"/></param>
+        /// <returns>An array of bits leaderboard entries</returns>
+        /// <exception cref="Exceptions.AuthorizationRequiredException">Thrown if <see cref="TwitchAPIHelix.clientidOrOauth"/> or <paramref name="oauth"/> is not set</exception>
+        /// <exception cref="Exceptions.TwitchErrorException">Thrown if Twitch returns an error</exception>
+        /// <exception cref="System.Net.WebException">Thrown if the HTTP request fails</exception>
+        public Bits.BitsLeaderboard GetBitsLeaderboard(int count, string period, string started_at, string user_id, string oauth)
+        {
+            Bits.BitsLeaderboard obj;
+            
+            count = Math.Min(100, Math.Max(1, count));
+
+            try
+            {
+                string param = period != null && period.Length > 0 ? "period=" + period : "";
+                param += param.Length > 0 ? "&" : "";
+                param += started_at != null && started_at.Length > 0 ? "started_at=" + started_at : "";
+                param += param.Length > 0 ? "&" : "";
+                param += user_id != null && user_id.Length > 0 ? "user_id=" + user_id : "";
+                param += "count=" + count;
+
+                string data = this.GetData(Request_type.GET, TwitchAPIHelix.base_url + "bits/leaderboard?" + param, "", false, oauth);
+
+                DataContractJsonSerializer js = new DataContractJsonSerializer(typeof(Bits.BitsLeaderboard));
+
+                MemoryStream ms = null;
+
+                try
+                {
+                    ms = new MemoryStream(Encoding.UTF8.GetBytes(data))
+                    {
+                        Position = 0
+                    };
+                    obj = (Bits.BitsLeaderboard)js.ReadObject(ms);
+                }
+                finally
+                {
+                    if (ms != null)
+                    {
+                        ms.Dispose();
+                    }
+                }
+            }
+            catch (System.Exception)
+            {
+                throw;
+            }
+
+            return obj;
+        }
+
+        /// <summary>
+        /// Gets a ranked list of Bits leaderboard information for an authorized broadcaster
+        /// 
+        /// <para>Required scope: bits:read</para>
+        /// </summary>
+        /// <param name="count">Number of results to be returned. Maximum: 100. Default: 10</param>
+        /// <param name="period">(Optional) Time period over which data is aggregated (PST time zone).
+        /// This parameter interacts with started_at. Valid values are given below. Default: "all".
+        /// <para>"day" - 00:00:00 on the day specified in started_at, through 00:00:00 on the following day. /////
+        /// "week" - 00:00:00 on Monday of the week specified in started_at, through 00:00:00 on the following Monday. /////
+        /// "month" - 00:00:00 on the first day of the month specified in started_at, through 00:00:00 on the first day of the following month. /////
+        /// "year" - 00:00:00 on the first day of the year specified in started_at, through 00:00:00 on the first day of the following year. /////
+        /// "all" - The lifetime of the broadcaster's channel. If this is specified (or used by default), started_at is ignored</para></param>
+        /// <param name="started_at">(Optional) Timestamp for the period over which the returned data is aggregated. Must be in RFC 3339 format. If this is not
+        /// provided, data is aggregated over the current period; e.g., the current day/week/month/year. This value is ignored if period is "all".
+        /// Any + operator should be URL encoded</param>
+        /// <param name="user_id">(Optional) ID of the user whose results are returned; i.e., the person who paid for the Bits.
+        /// If user_id is not provided, the endpoint returns the Bits leaderboard data across top users (subject to the value of count)</param>
+        /// <param name="oauth">(Optional) If provided, overrides <see cref="TwitchAPIHelix.clientidOrOauth"/></param>
+        /// <returns>An array of bits leaderboard entries</returns>
+        /// <exception cref="Exceptions.AuthorizationRequiredException">Thrown if <see cref="TwitchAPIHelix.clientidOrOauth"/> or <paramref name="oauth"/> is not set</exception>
+        /// <exception cref="Exceptions.TwitchErrorException">Thrown if Twitch returns an error</exception>
+        /// <exception cref="System.Net.WebException">Thrown if the HTTP request fails</exception>
+        public Task<Bits.BitsLeaderboard> GetBitsLeaderboardAsync(int count, string period, string started_at, string user_id, string oauth) => Task.Run<Bits.BitsLeaderboard>(() => this.GetBitsLeaderboard(count, period, started_at, user_id, oauth));
     }
 }

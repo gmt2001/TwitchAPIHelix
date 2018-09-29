@@ -46,6 +46,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Bits\BitsLeaderboard.cs" />
+    <Compile Include="Bits\BitsLeaderboardEntry.cs" />
+    <Compile Include="DateRange.cs" />
     <Compile Include="Exceptions\AuthorizationRequiredException.cs" />
     <Compile Include="Exceptions\OAuthRequiredException.cs" />
     <Compile Include="Games\GameEntry.cs" />
@@ -56,5 +59,6 @@
     <Compile Include="TwitchAPIResponse.cs" />
     <Compile Include="Exceptions\TwitchErrorException.cs" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

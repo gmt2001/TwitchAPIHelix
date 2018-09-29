@@ -1,4 +1,4 @@
-/*
+ï»¿/*
  *  TwitchAPIHelix - A library to access the Twitch Helix API for .NET 4.7/Mono
  *  Copyright (C) 2018 gmt2001 - https://keybase.io/gmt2001
  *
@@ -18,36 +18,30 @@
 
 using System.Runtime.Serialization;
 
-namespace TwitchAPIHelix.Games
+namespace TwitchAPIHelix
 {
     /// <summary>
-    /// Represents an entry containing data about a game
+    /// Represents a date range
     /// </summary>
     [DataContract]
-    public class GameEntry
+    public class DateRange
     {
         /// <summary>
-        /// Template URL for the game’s box art
+        /// Start of the date range for the returned data in RFC 3339 format
         /// </summary>
         [DataMember]
-        public string box_art_url;
+        public string started_at;
 
         /// <summary>
-        /// Game ID
+        /// End of the date range for the returned data in RFC 3339 format
         /// </summary>
         [DataMember]
-        public string id;
-
-        /// <summary>
-        /// Game name
-        /// </summary>
-        [DataMember]
-        public string name;
+        public string ended_at;
 
         /// <summary>
         /// Default constructor
         /// </summary>
-        internal GameEntry()
+        internal DateRange()
         {
         }
     }

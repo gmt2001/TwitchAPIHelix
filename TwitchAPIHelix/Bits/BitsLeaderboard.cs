@@ -1,4 +1,4 @@
-/*
+ï»¿/*
  *  TwitchAPIHelix - A library to access the Twitch Helix API for .NET 4.7/Mono
  *  Copyright (C) 2018 gmt2001 - https://keybase.io/gmt2001
  *
@@ -18,36 +18,36 @@
 
 using System.Runtime.Serialization;
 
-namespace TwitchAPIHelix.Games
+namespace TwitchAPIHelix.Bits
 {
     /// <summary>
-    /// Represents an entry containing data about a game
+    /// Represents a bits leaderboard
     /// </summary>
     [DataContract]
-    public class GameEntry
+    public class BitsLeaderboard : TwitchAPIResponse
     {
         /// <summary>
-        /// Template URL for the game’s box art
+        /// An array of leaderboard entries
         /// </summary>
         [DataMember]
-        public string box_art_url;
+        public BitsLeaderboardEntry[] data;
 
         /// <summary>
-        /// Game ID
+        /// The date range being queried
         /// </summary>
         [DataMember]
-        public string id;
+        public DateRange date_range;
 
         /// <summary>
-        /// Game name
+        /// Total number of results (users) returned. This is count or the total number of entries in the leaderboard, whichever is less
         /// </summary>
         [DataMember]
-        public string name;
+        public int total;
 
         /// <summary>
         /// Default constructor
         /// </summary>
-        internal GameEntry()
+        internal BitsLeaderboard()
         {
         }
     }
