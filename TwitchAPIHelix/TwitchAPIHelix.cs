@@ -23,6 +23,7 @@ using System.Net.Cache;
 using System.Runtime.Serialization.Json;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace TwitchAPIHelix
 {
@@ -369,5 +370,87 @@ namespace TwitchAPIHelix
 
             return obj;
         }
+
+        /// <summary>
+        /// Gets game information by game ID or name
+        ///
+        /// <para>For a query to be valid, name and/or id must be specified</para>
+        /// </summary>
+        /// <param name="id">Game ID. At most 100 id values can be specified</param>
+        /// <param name="name">Game name. The name must be an exact match. For instance,
+        /// “Pokemon” will not return a list of Pokemon games; instead, query the specific
+        /// Pokemon game(s) in which you are interested. At most 100 name values can be specified</param>
+        /// <returns>An array of matching games</returns>
+        /// <exception cref="ArgumentException">Thrown if both id and name are not provided</exception>
+        /// <exception cref="Exceptions.AuthorizationRequiredException">Thrown if <see cref="TwitchAPIHelix.clientidOrOauth"/> is not set</exception>
+        /// <exception cref="Exceptions.TwitchErrorException">Thrown if Twitch returns an error</exception>
+        /// <exception cref="System.Net.WebException">Thrown if the HTTP request fails</exception>
+        public Task<Games.GamesList> GetGamesAsync(string[] id, string[] name) => Task.Run<Games.GamesList>(() => this.GetGames(id, name));
+
+        /// <summary>
+        /// Gets games sorted by number of current viewers on Twitch, most popular first
+        /// </summary>
+        /// <param name="after">(Optional) Cursor for forward pagination: tells the server where to start fetching the next set of results,
+        /// in a multi-page response. The cursor value specified here is from the pagination response field of a prior query</param>
+        /// <param name="before">(Optional) Cursor for backward pagination: tells the server where to start fetching the next set of results,
+        /// in a multi-page response. The cursor value specified here is from the pagination response field of a prior query</param>
+        /// <param name="first">Maximum number of objects to return. Maximum: 100. Default: 20</param>
+        /// <returns>An array of matching games</returns>
+        /// <exception cref="Exceptions.AuthorizationRequiredException">Thrown if <see cref="TwitchAPIHelix.clientidOrOauth"/> is not set</exception>
+        /// <exception cref="Exceptions.TwitchErrorException">Thrown if Twitch returns an error</exception>
+        /// <exception cref="System.Net.WebException">Thrown if the HTTP request fails</exception>
+        public Games.GamesList GetTopGames(string after,  string before, int first)
+        {
+            Games.GamesList obj;
+
+            try
+            {
+                string param = after != null && after.Length > 0 ? "after=" + after : before != null && before.Length > 0 ? "before=" + before : "";
+                param += (after != null && after.Length > 0) || (before != null && before.Length > 0) ? "&" : "";
+                param += "first=" + first;
+
+                string data = this.GetData(Request_type.GET, TwitchAPIHelix.base_url + "games/top?" + param, "", false, null);
+
+                DataContractJsonSerializer js = new DataContractJsonSerializer(typeof(Games.GamesList));
+
+                MemoryStream ms = null;
+
+                try
+                {
+                    ms = new MemoryStream(Encoding.UTF8.GetBytes(data))
+                    {
+                        Position = 0
+                    };
+                    obj = (Games.GamesList)js.ReadObject(ms);
+                }
+                finally
+                {
+                    if (ms != null)
+                    {
+                        ms.Dispose();
+                    }
+                }
+            }
+            catch (System.Exception)
+            {
+                throw;
+            }
+
+            return obj;
+        }
+
+        /// <summary>
+        /// Gets games sorted by number of current viewers on Twitch, most popular first
+        /// </summary>
+        /// <param name="after">(Optional) Cursor for forward pagination: tells the server where to start fetching the next set of results,
+        /// in a multi-page response. The cursor value specified here is from the pagination response field of a prior query</param>
+        /// <param name="before">(Optional) Cursor for backward pagination: tells the server where to start fetching the next set of results,
+        /// in a multi-page response. The cursor value specified here is from the pagination response field of a prior query</param>
+        /// <param name="first">Maximum number of objects to return. Maximum: 100. Default: 20</param>
+        /// <returns>An array of matching games</returns>
+        /// <exception cref="Exceptions.AuthorizationRequiredException">Thrown if <see cref="TwitchAPIHelix.clientidOrOauth"/> is not set</exception>
+        /// <exception cref="Exceptions.TwitchErrorException">Thrown if Twitch returns an error</exception>
+        /// <exception cref="System.Net.WebException">Thrown if the HTTP request fails</exception>
+        public Task<Games.GamesList> GetTopGamesAsync(string after, string before, int first) => Task.Run<Games.GamesList>(() => this.GetTopGames(after, before, first));
     }
 }
