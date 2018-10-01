@@ -1,4 +1,4 @@
-/*
+﻿/*
  *  TwitchAPIHelix - A library to access the Twitch Helix API for .NET 4.7/Mono
  *  Copyright (C) 2018 gmt2001 - https://keybase.io/gmt2001
  *
@@ -18,32 +18,24 @@
 
 using System.Runtime.Serialization;
 
-namespace TwitchAPIHelix.Games
+namespace TwitchAPIHelix
 {
     /// <summary>
-    /// Represents an array of games
+    /// Represents a pagination cursor
     /// </summary>
     [DataContract]
-    public class GamesList : TwitchAPIResponse
+    public class Pagination
     {
         /// <summary>
-        /// An array of games
-        /// </summary>
-        [DataMember]
-        public GameEntry[] data;
-
-        /// <summary>
         /// A cursor value, to be used in a subsequent request to specify the starting point of the next set of results
-        ///
-        /// <para>This field is only available on GetTopGames requests</para>
         /// </summary>
         [DataMember]
-        public Pagination pagination;
+        public string cursor;
 
         /// <summary>
-        /// Default constructor
+        /// Default Constructor
         /// </summary>
-        internal GamesList()
+        internal Pagination()
         {
         }
     }
