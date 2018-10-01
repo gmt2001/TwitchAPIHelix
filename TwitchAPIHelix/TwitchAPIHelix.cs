@@ -112,7 +112,8 @@ namespace TwitchAPIHelix
         /// <param name="isJson">If true, the post data is JSON</param>
         /// <param name="oauth">If set, overrides the OAuth token to use for the request</param>
         /// <returns>The result from Twitch</returns>
-        /// <exception cref="Exceptions.AuthorizationRequiredException">Thrown if both <see cref="TwitchAPIHelix.clientidOrOauth"/> and <paramref name="oauth"/> are not set</exception>
+        /// <exception cref="Exceptions.AuthorizationRequiredException">Thrown if both <see cref="TwitchAPIHelix.clientidOrOauth"/> and
+        /// <paramref name="oauth"/> are not set</exception>
         /// <exception cref="Exceptions.TwitchErrorException">Thrown if Twitch returns an error</exception>
         /// <exception cref="System.Net.WebException">Thrown if the HTTP request fails</exception>
         private string GetData(Request_type type, string url, string post, bool isJson, string oauth)
@@ -315,14 +316,15 @@ namespace TwitchAPIHelix
         /// <summary>
         /// Gets game information by game ID or name
         ///
-        /// <para>For a query to be valid, name and/or id must be specified</para>
+        /// <para>For a query to be valid, <paramref name="name"/> and/or <paramref name="id"/> must be specified</para>
         /// </summary>
         /// <param name="id">Game ID. At most 100 id values can be specified</param>
         /// <param name="name">Game name. The name must be an exact match. For instance,
         /// “Pokemon” will not return a list of Pokemon games; instead, query the specific
         /// Pokemon game(s) in which you are interested. At most 100 name values can be specified</param>
         /// <returns>An array of matching games</returns>
-        /// <exception cref="ArgumentException">Thrown if both <paramref name="id"/> and <paramref name="name"/> are not provided</exception>
+        /// <exception cref="System.ArgumentException">Thrown if both <paramref name="id"/> and <paramref name="name"/> are not provided or
+        /// have more than 100 entries</exception>
         /// <exception cref="Exceptions.AuthorizationRequiredException">Thrown if <see cref="TwitchAPIHelix.clientidOrOauth"/> is not set</exception>
         /// <exception cref="Exceptions.TwitchErrorException">Thrown if Twitch returns an error</exception>
         /// <exception cref="System.Net.WebException">Thrown if the HTTP request fails</exception>
@@ -331,6 +333,11 @@ namespace TwitchAPIHelix
             if ((id == null || id.Length == 0 || id[0].Length == 0) && (name == null || name.Length == 0 || name[0].Length == 0))
             {
                 throw new ArgumentException("Must provide at least one name or id");
+            }
+
+            if ((id != null && id.Length > 100) || (name != null && name.Length > 100))
+            {
+                throw new ArgumentException("Maximum of 100 entries allowed for id or name parameter");
             }
 
             Games.GamesList obj;
@@ -374,14 +381,15 @@ namespace TwitchAPIHelix
         /// <summary>
         /// Gets game information by game ID or name
         ///
-        /// <para>For a query to be valid, name and/or id must be specified</para>
+        /// <para>For a query to be valid, <paramref name="name"/> and/or <paramref name="id"/> must be specified</para>
         /// </summary>
         /// <param name="id">Game ID. At most 100 id values can be specified</param>
         /// <param name="name">Game name. The name must be an exact match. For instance,
         /// “Pokemon” will not return a list of Pokemon games; instead, query the specific
         /// Pokemon game(s) in which you are interested. At most 100 name values can be specified</param>
         /// <returns>An array of matching games</returns>
-        /// <exception cref="ArgumentException">Thrown if both <paramref name="id"/> and <paramref name="name"/> are not provided</exception>
+        /// <exception cref="System.ArgumentException">Thrown if both <paramref name="id"/> and <paramref name="name"/> are not provided or
+        /// have more than 100 entries</exception>
         /// <exception cref="Exceptions.AuthorizationRequiredException">Thrown if <see cref="TwitchAPIHelix.clientidOrOauth"/> is not set</exception>
         /// <exception cref="Exceptions.TwitchErrorException">Thrown if Twitch returns an error</exception>
         /// <exception cref="System.Net.WebException">Thrown if the HTTP request fails</exception>
@@ -390,16 +398,16 @@ namespace TwitchAPIHelix
         /// <summary>
         /// Gets games sorted by number of current viewers on Twitch, most popular first
         /// </summary>
+        /// <param name="first">Maximum number of objects to return. Maximum: 100. Default: 20</param>
         /// <param name="after">(Optional) Cursor for forward pagination: tells the server where to start fetching the next set of results,
         /// in a multi-page response. The cursor value specified here is from the pagination response field of a prior query</param>
         /// <param name="before">(Optional) Cursor for backward pagination: tells the server where to start fetching the next set of results,
         /// in a multi-page response. The cursor value specified here is from the pagination response field of a prior query</param>
-        /// <param name="first">Maximum number of objects to return. Maximum: 100. Default: 20</param>
         /// <returns>An array of matching games</returns>
         /// <exception cref="Exceptions.AuthorizationRequiredException">Thrown if <see cref="TwitchAPIHelix.clientidOrOauth"/> is not set</exception>
         /// <exception cref="Exceptions.TwitchErrorException">Thrown if Twitch returns an error</exception>
         /// <exception cref="System.Net.WebException">Thrown if the HTTP request fails</exception>
-        public Games.GamesList GetTopGames(string after, string before, int first)
+        public Games.GamesList GetTopGames(int first,string after, string before)
         {
             Games.GamesList obj;
 
@@ -444,16 +452,16 @@ namespace TwitchAPIHelix
         /// <summary>
         /// Gets games sorted by number of current viewers on Twitch, most popular first
         /// </summary>
+        /// <param name="first">Maximum number of objects to return. Maximum: 100. Default: 20</param>
         /// <param name="after">(Optional) Cursor for forward pagination: tells the server where to start fetching the next set of results,
         /// in a multi-page response. The cursor value specified here is from the pagination response field of a prior query</param>
         /// <param name="before">(Optional) Cursor for backward pagination: tells the server where to start fetching the next set of results,
         /// in a multi-page response. The cursor value specified here is from the pagination response field of a prior query</param>
-        /// <param name="first">Maximum number of objects to return. Maximum: 100. Default: 20</param>
         /// <returns>An array of matching games</returns>
         /// <exception cref="Exceptions.AuthorizationRequiredException">Thrown if <see cref="TwitchAPIHelix.clientidOrOauth"/> is not set</exception>
         /// <exception cref="Exceptions.TwitchErrorException">Thrown if Twitch returns an error</exception>
         /// <exception cref="System.Net.WebException">Thrown if the HTTP request fails</exception>
-        public Task<Games.GamesList> GetTopGamesAsync(string after, string before, int first) => Task.Run<Games.GamesList>(() => this.GetTopGames(after, before, first));
+        public Task<Games.GamesList> GetTopGamesAsync(int first, string after, string before) => Task.Run<Games.GamesList>(() => this.GetTopGames(first, after, before));
 
         /// <summary>
         /// Gets a ranked list of Bits leaderboard information for an authorized broadcaster
@@ -475,7 +483,8 @@ namespace TwitchAPIHelix
         /// If user_id is not provided, the endpoint returns the Bits leaderboard data across top users (subject to the value of count)</param>
         /// <param name="oauth">(Optional) If provided, overrides <see cref="TwitchAPIHelix.clientidOrOauth"/></param>
         /// <returns>An array of bits leaderboard entries</returns>
-        /// <exception cref="Exceptions.AuthorizationRequiredException">Thrown if <see cref="TwitchAPIHelix.clientidOrOauth"/> or <paramref name="oauth"/> is not set</exception>
+        /// <exception cref="Exceptions.AuthorizationRequiredException">Thrown if <see cref="TwitchAPIHelix.clientidOrOauth"/> or
+        /// <paramref name="oauth"/> is not set</exception>
         /// <exception cref="Exceptions.TwitchErrorException">Thrown if Twitch returns an error</exception>
         /// <exception cref="System.Net.WebException">Thrown if the HTTP request fails</exception>
         public Bits.BitsLeaderboard GetBitsLeaderboard(int count, string period, string started_at, string user_id, string oauth)
@@ -543,9 +552,111 @@ namespace TwitchAPIHelix
         /// If user_id is not provided, the endpoint returns the Bits leaderboard data across top users (subject to the value of count)</param>
         /// <param name="oauth">(Optional) If provided, overrides <see cref="TwitchAPIHelix.clientidOrOauth"/></param>
         /// <returns>An array of bits leaderboard entries</returns>
-        /// <exception cref="Exceptions.AuthorizationRequiredException">Thrown if <see cref="TwitchAPIHelix.clientidOrOauth"/> or <paramref name="oauth"/> is not set</exception>
+        /// <exception cref="Exceptions.AuthorizationRequiredException">Thrown if <see cref="TwitchAPIHelix.clientidOrOauth"/> or
+        /// <paramref name="oauth"/> is not set</exception>
         /// <exception cref="Exceptions.TwitchErrorException">Thrown if Twitch returns an error</exception>
         /// <exception cref="System.Net.WebException">Thrown if the HTTP request fails</exception>
-        public Task<Bits.BitsLeaderboard> GetBitsLeaderboardAsync(int count, string period, string started_at, string user_id, string oauth) => Task.Run<Bits.BitsLeaderboard>(() => this.GetBitsLeaderboard(count, period, started_at, user_id, oauth));
+        public Task<Bits.BitsLeaderboard> GetBitsLeaderboardAsync(int count, string period, string started_at, string user_id, string oauth) =>
+            Task.Run<Bits.BitsLeaderboard>(() => this.GetBitsLeaderboard(count, period, started_at, user_id, oauth));
+
+        /// <summary>
+        /// Gets information about active streams. Streams are returned sorted by number of current viewers, in descending order.
+        /// Across multiple pages of results, there may be duplicate or missing streams, as viewers join and leave streams
+        /// </summary>
+        /// <param name="first">Maximum number of objects to return. Maximum: 100. Default: 20</param>
+        /// <param name="after">(Optional) Cursor for forward pagination: tells the server where to start fetching the next set of results,
+        /// in a multi-page response. The cursor value specified here is from the pagination response field of a prior query</param>
+        /// <param name="before">(Optional) Cursor for backward pagination: tells the server where to start fetching the next set of results,
+        /// in a multi-page response. The cursor value specified here is from the pagination response field of a prior query</param>
+        /// <param name="community_id">(Optional) Returns streams in a specified community ID. You can specify up to 100 IDs</param>
+        /// <param name="game_id">(Optional) Returns streams broadcasting a specified game ID. You can specify up to 100 IDs</param>
+        /// <param name="language">(Optional) Stream language. You can specify up to 100 languages</param>
+        /// <param name="user_id">(Optional) Returns streams broadcast by one or more specified user IDs. You can specify up to 100 IDs</param>
+        /// <param name="user_login">(Optional) Returns streams broadcast by one or more specified user login names. You can specify up to 100 names</param>
+        /// <returns>An array of streams</returns>
+        /// <exception cref="System.ArgumentException">Thrown if any of the optional string array parameters contains over 100 entries</exception>
+        /// <exception cref="Exceptions.AuthorizationRequiredException">Thrown if <see cref="TwitchAPIHelix.clientidOrOauth"/> is not set</exception>
+        /// <exception cref="Exceptions.TwitchErrorException">Thrown if Twitch returns an error</exception>
+        /// <exception cref="System.Net.WebException">Thrown if the HTTP request fails</exception>
+        public Streams.StreamsList GetStreams(int first, string after, string before, string[] community_id, string[] game_id, string[] language,
+            string[] user_id, string[] user_login)
+        {
+            Streams.StreamsList obj;
+
+            first = Math.Min(100, Math.Max(1, first));
+
+            if ((community_id != null && community_id.Length > 100) || (game_id != null && game_id.Length > 100) || (language != null && language.Length > 100)
+                || (user_id != null && user_id.Length > 100) || (user_login != null && user_login.Length > 100))
+            {
+                throw new ArgumentException("Optional string array arguments can not have more than 100 entries");
+            }
+
+            try
+            {
+                string param = after != null && after.Length > 0 ? "after=" + after : before != null && before.Length > 0 ? "before=" + before : "";
+                param += param.Length > 0 ? "&" : "";
+                param += community_id != null && community_id.Length > 0 ? "community_id=" + string.Join("&community_id=", community_id) : "";
+                param += param.Length > 0 ? "&" : "";
+                param += game_id != null && game_id.Length > 0 ? "game_id=" + string.Join("&game_id=", game_id) : "";
+                param += param.Length > 0 ? "&" : "";
+                param += language != null && language.Length > 0 ? "language=" + string.Join("&language=", language) : "";
+                param += param.Length > 0 ? "&" : "";
+                param += user_id != null && user_id.Length > 0 ? "user_id=" + string.Join("&user_id=", user_id) : "";
+                param += param.Length > 0 ? "&" : "";
+                param += user_login != null && user_login.Length > 0 ? "user_login=" + string.Join("&user_login=", user_login) : "";
+                param += param.Length > 0 ? "&" : "";
+                param += "first=" + first;
+
+                string data = this.GetData(Request_type.GET, TwitchAPIHelix.base_url + "streams?" + param, "", false, null);
+
+                DataContractJsonSerializer js = new DataContractJsonSerializer(typeof(Streams.StreamsList));
+
+                MemoryStream ms = null;
+
+                try
+                {
+                    ms = new MemoryStream(Encoding.UTF8.GetBytes(data))
+                    {
+                        Position = 0
+                    };
+                    obj = (Streams.StreamsList)js.ReadObject(ms);
+                }
+                finally
+                {
+                    if (ms != null)
+                    {
+                        ms.Dispose();
+                    }
+                }
+            }
+            catch (System.Exception)
+            {
+                throw;
+            }
+
+            return obj;
+        }
+
+        /// <summary>
+        /// Gets information about active streams. Streams are returned sorted by number of current viewers, in descending order.
+        /// Across multiple pages of results, there may be duplicate or missing streams, as viewers join and leave streams
+        /// </summary>
+        /// <param name="first">Maximum number of objects to return. Maximum: 100. Default: 20</param>
+        /// <param name="after">(Optional) Cursor for forward pagination: tells the server where to start fetching the next set of results,
+        /// in a multi-page response. The cursor value specified here is from the pagination response field of a prior query</param>
+        /// <param name="before">(Optional) Cursor for backward pagination: tells the server where to start fetching the next set of results,
+        /// in a multi-page response. The cursor value specified here is from the pagination response field of a prior query</param>
+        /// <param name="community_id">(Optional) Returns streams in a specified community ID. You can specify up to 100 IDs</param>
+        /// <param name="game_id">(Optional) Returns streams broadcasting a specified game ID. You can specify up to 100 IDs</param>
+        /// <param name="language">(Optional) Stream language. You can specify up to 100 languages</param>
+        /// <param name="user_id">(Optional) Returns streams broadcast by one or more specified user IDs. You can specify up to 100 IDs</param>
+        /// <param name="user_login">(Optional) Returns streams broadcast by one or more specified user login names. You can specify up to 100 names</param>
+        /// <returns>An array of streams</returns>
+        /// <exception cref="System.ArgumentException">Thrown if any of the optional string array parameters contains over 100 entries</exception>
+        /// <exception cref="Exceptions.AuthorizationRequiredException">Thrown if <see cref="TwitchAPIHelix.clientidOrOauth"/> is not set</exception>
+        /// <exception cref="Exceptions.TwitchErrorException">Thrown if Twitch returns an error</exception>
+        /// <exception cref="System.Net.WebException">Thrown if the HTTP request fails</exception>
+        public Task<Streams.StreamsList> GetStreamsAsync(int first, string after, string before, string[] community_id, string[] game_id, string[] language,
+            string[] user_id, string[] user_login) => Task.Run(() => this.GetStreams(first, after, before, community_id, game_id, language, user_id, user_login));
     }
 }

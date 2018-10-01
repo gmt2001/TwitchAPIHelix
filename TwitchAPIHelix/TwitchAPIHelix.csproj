@@ -53,6 +53,9 @@
     <Compile Include="Exceptions\OAuthRequiredException.cs" />
     <Compile Include="Games\GameEntry.cs" />
     <Compile Include="Games\GamesList.cs" />
+    <Compile Include="Pagination.cs" />
+    <Compile Include="Streams\StreamEntry.cs" />
+    <Compile Include="Streams\StreamsList.cs" />
     <Compile Include="TwitchError.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TwitchAPIHelix.cs" />
