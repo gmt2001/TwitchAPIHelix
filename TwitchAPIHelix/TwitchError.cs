@@ -17,7 +17,7 @@
  */
 
 using System.Runtime.Serialization;
-
+#pragma warning disable 0649
 namespace TwitchAPIHelix
 {
     /// <summary>
@@ -52,3 +52,4 @@ namespace TwitchAPIHelix
         }
     }
 }
+#pragma warning restore 0649

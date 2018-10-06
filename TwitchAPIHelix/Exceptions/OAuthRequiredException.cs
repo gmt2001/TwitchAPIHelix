@@ -16,11 +16,14 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+using System;
+
 namespace TwitchAPIHelix.Exceptions
 {
     /// <summary>
     /// Indicates an OAuth token is required for the requested API call
     /// </summary>
+    [Serializable]
     public class OAuthRequiredException : AuthorizationRequiredException
     {
     }
