@@ -54,7 +54,15 @@
     <Compile Include="Games\GameEntry.cs" />
     <Compile Include="Games\GamesList.cs" />
     <Compile Include="Pagination.cs" />
+    <Compile Include="Streams\HearthstoneData.cs" />
+    <Compile Include="Streams\HearthstoneHero.cs" />
+    <Compile Include="Streams\HearthstonePlayer.cs" />
+    <Compile Include="Streams\OverwatchData.cs" />
+    <Compile Include="Streams\OverwatchHero.cs" />
+    <Compile Include="Streams\OverwatchPlayer.cs" />
     <Compile Include="Streams\StreamEntry.cs" />
+    <Compile Include="Streams\StreamMetadataEntry.cs" />
+    <Compile Include="Streams\StreamMetadataList.cs" />
     <Compile Include="Streams\StreamsList.cs" />
     <Compile Include="TwitchError.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

@@ -658,5 +658,105 @@ namespace TwitchAPIHelix
         /// <exception cref="System.Net.WebException">Thrown if the HTTP request fails</exception>
         public Task<Streams.StreamsList> GetStreamsAsync(int first, string after, string before, string[] community_id, string[] game_id, string[] language,
             string[] user_id, string[] user_login) => Task.Run(() => this.GetStreams(first, after, before, community_id, game_id, language, user_id, user_login));
+
+        /// <summary>
+        /// Gets metadata information about active streams playing Overwatch or Hearthstone. Streams are sorted by number of current viewers, in descending order.
+        /// Across multiple pages of results, there may be duplicate or missing streams, as viewers join and leave streams
+        /// </summary>
+        /// <param name="first">Maximum number of objects to return. Maximum: 100. Default: 20</param>
+        /// <param name="after">(Optional) Cursor for forward pagination: tells the server where to start fetching the next set of results,
+        /// in a multi-page response. The cursor value specified here is from the pagination response field of a prior query</param>
+        /// <param name="before">(Optional) Cursor for backward pagination: tells the server where to start fetching the next set of results,
+        /// in a multi-page response. The cursor value specified here is from the pagination response field of a prior query</param>
+        /// <param name="community_id">(Optional) Returns streams in a specified community ID. You can specify up to 100 IDs</param>
+        /// <param name="game_id">(Optional) Returns streams broadcasting a specified game ID. You can specify up to 100 IDs</param>
+        /// <param name="language">(Optional) Stream language. You can specify up to 100 languages</param>
+        /// <param name="user_id">(Optional) Returns streams broadcast by one or more specified user IDs. You can specify up to 100 IDs</param>
+        /// <param name="user_login">(Optional) Returns streams broadcast by one or more specified user login names. You can specify up to 100 names</param>
+        /// <returns>An array of streams</returns>
+        /// <exception cref="System.ArgumentException">Thrown if any of the optional string array parameters contains over 100 entries</exception>
+        /// <exception cref="Exceptions.AuthorizationRequiredException">Thrown if <see cref="TwitchAPIHelix.clientidOrOauth"/> is not set</exception>
+        /// <exception cref="Exceptions.TwitchErrorException">Thrown if Twitch returns an error</exception>
+        /// <exception cref="System.Net.WebException">Thrown if the HTTP request fails</exception>
+        public Streams.StreamsList GetStreamsMetadata(int first, string after, string before, string[] community_id, string[] game_id, string[] language,
+            string[] user_id, string[] user_login)
+        {
+            Streams.StreamsList obj;
+
+            first = Math.Min(100, Math.Max(1, first));
+
+            if ((community_id != null && community_id.Length > 100) || (game_id != null && game_id.Length > 100) || (language != null && language.Length > 100)
+                || (user_id != null && user_id.Length > 100) || (user_login != null && user_login.Length > 100))
+            {
+                throw new ArgumentException("Optional string array arguments can not have more than 100 entries");
+            }
+
+            try
+            {
+                string param = after != null && after.Length > 0 ? "after=" + after : before != null && before.Length > 0 ? "before=" + before : "";
+                param += param.Length > 0 ? "&" : "";
+                param += community_id != null && community_id.Length > 0 ? "community_id=" + string.Join("&community_id=", community_id) : "";
+                param += param.Length > 0 ? "&" : "";
+                param += game_id != null && game_id.Length > 0 ? "game_id=" + string.Join("&game_id=", game_id) : "";
+                param += param.Length > 0 ? "&" : "";
+                param += language != null && language.Length > 0 ? "language=" + string.Join("&language=", language) : "";
+                param += param.Length > 0 ? "&" : "";
+                param += user_id != null && user_id.Length > 0 ? "user_id=" + string.Join("&user_id=", user_id) : "";
+                param += param.Length > 0 ? "&" : "";
+                param += user_login != null && user_login.Length > 0 ? "user_login=" + string.Join("&user_login=", user_login) : "";
+                param += param.Length > 0 ? "&" : "";
+                param += "first=" + first;
+
+                string data = this.GetData(Request_type.GET, TwitchAPIHelix.base_url + "streams?" + param, "", false, null);
+
+                DataContractJsonSerializer js = new DataContractJsonSerializer(typeof(Streams.StreamsList));
+
+                MemoryStream ms = null;
+
+                try
+                {
+                    ms = new MemoryStream(Encoding.UTF8.GetBytes(data))
+                    {
+                        Position = 0
+                    };
+                    obj = (Streams.StreamsList)js.ReadObject(ms);
+                }
+                finally
+                {
+                    if (ms != null)
+                    {
+                        ms.Dispose();
+                    }
+                }
+            }
+            catch (System.Exception)
+            {
+                throw;
+            }
+
+            return obj;
+        }
+
+        /// <summary>
+        /// Gets metadata information about active streams playing Overwatch or Hearthstone. Streams are sorted by number of current viewers, in descending order.
+        /// Across multiple pages of results, there may be duplicate or missing streams, as viewers join and leave streams
+        /// </summary>
+        /// <param name="first">Maximum number of objects to return. Maximum: 100. Default: 20</param>
+        /// <param name="after">(Optional) Cursor for forward pagination: tells the server where to start fetching the next set of results,
+        /// in a multi-page response. The cursor value specified here is from the pagination response field of a prior query</param>
+        /// <param name="before">(Optional) Cursor for backward pagination: tells the server where to start fetching the next set of results,
+        /// in a multi-page response. The cursor value specified here is from the pagination response field of a prior query</param>
+        /// <param name="community_id">(Optional) Returns streams in a specified community ID. You can specify up to 100 IDs</param>
+        /// <param name="game_id">(Optional) Returns streams broadcasting a specified game ID. You can specify up to 100 IDs</param>
+        /// <param name="language">(Optional) Stream language. You can specify up to 100 languages</param>
+        /// <param name="user_id">(Optional) Returns streams broadcast by one or more specified user IDs. You can specify up to 100 IDs</param>
+        /// <param name="user_login">(Optional) Returns streams broadcast by one or more specified user login names. You can specify up to 100 names</param>
+        /// <returns>An array of streams</returns>
+        /// <exception cref="System.ArgumentException">Thrown if any of the optional string array parameters contains over 100 entries</exception>
+        /// <exception cref="Exceptions.AuthorizationRequiredException">Thrown if <see cref="TwitchAPIHelix.clientidOrOauth"/> is not set</exception>
+        /// <exception cref="Exceptions.TwitchErrorException">Thrown if Twitch returns an error</exception>
+        /// <exception cref="System.Net.WebException">Thrown if the HTTP request fails</exception>
+        public Task<Streams.StreamsList> GetStreamsMetadataAsync(int first, string after, string before, string[] community_id, string[] game_id, string[] language,
+            string[] user_id, string[] user_login) => Task.Run(() => this.GetStreamsMetadata(first, after, before, community_id, game_id, language, user_id, user_login));
     }
 }
