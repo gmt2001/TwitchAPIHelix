@@ -24,7 +24,7 @@ namespace TwitchAPIHelix.Games
     /// Represents an array of games
     /// </summary>
     [DataContract]
-    public class GamesList : TwitchAPIResponse
+    public class GamesList
     {
         /// <summary>
         /// An array of games

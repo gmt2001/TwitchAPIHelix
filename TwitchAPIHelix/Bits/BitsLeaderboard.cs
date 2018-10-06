@@ -24,7 +24,7 @@ namespace TwitchAPIHelix.Bits
     /// Represents a bits leaderboard
     /// </summary>
     [DataContract]
-    public class BitsLeaderboard : TwitchAPIResponse
+    public class BitsLeaderboard
     {
         /// <summary>
         /// An array of leaderboard entries
