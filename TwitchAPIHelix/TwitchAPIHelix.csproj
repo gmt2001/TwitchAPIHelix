@@ -69,6 +69,8 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TwitchAPIHelix.cs" />
     <Compile Include="Exceptions\TwitchErrorException.cs" />
+    <Compile Include="Users\UserEntry.cs" />
+    <Compile Include="Users\UsersList.cs" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
