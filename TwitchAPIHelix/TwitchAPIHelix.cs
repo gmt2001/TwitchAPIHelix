@@ -129,14 +129,17 @@ namespace TwitchAPIHelix
             {
                 Thread.Sleep(this.ratelimit_reset - DateTime.UtcNow);
             }
-            else
+
+            lock (TwitchAPIHelix.getDataLock)
             {
-                lock (TwitchAPIHelix.getDataLock)
+                if (this.ratelimit_remaining == 0)
                 {
                     this.ratelimit_remaining = this.ratelimit_limit;
                     this.ratelimit_reset = DateTime.UtcNow.AddSeconds(60);
                 }
             }
+
+            Thread.Sleep(300);
 
         CheckLimit:
             lock (TwitchAPIHelix.getDataLock)
