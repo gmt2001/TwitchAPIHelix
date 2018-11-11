@@ -33,6 +33,12 @@ namespace TwitchAPIHelix.Streams
         public string user_id;
 
         /// <summary>
+        /// Login name corresponding to <see cref="user_id"/>
+        /// </summary>
+        [DataMember]
+        public string user_name;
+
+        /// <summary>
         /// ID of the game being played on the stream: 488552 (Overwatch), 138585 (Hearthstone), or null (neither Overwatch nor Hearthstone metadata is available)
         /// </summary>
         [DataMember]

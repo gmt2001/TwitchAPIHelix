@@ -33,6 +33,12 @@ namespace TwitchAPIHelix.Bits
         public string user_id;
 
         /// <summary>
+        /// Login name corresponding to <see cref="user_id"/>
+        /// </summary>
+        [DataMember]
+        public string user_name;
+
+        /// <summary>
         /// Leaderboard rank of the user
         /// </summary>
         [DataMember]
