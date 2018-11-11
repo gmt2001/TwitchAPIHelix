@@ -823,5 +823,73 @@ namespace TwitchAPIHelix
         /// <exception cref="System.Net.WebException">Thrown if the HTTP request fails</exception>
         public Task<Streams.StreamsList> GetStreamsMetadataAsync(int first, string after, string before, string[] community_id, string[] game_id, string[] language,
             string[] user_id, string[] user_login) => Task.Run(() => this.GetStreamsMetadata(first, after, before, community_id, game_id, language, user_id, user_login));
+
+        /// <summary>
+        /// Gets information about one or more specified Twitch users. Users are identified by optional user IDs and/or login name.
+        /// If neither a user ID nor a login name is specified, the user is looked up by Bearer token
+        /// </summary>
+        /// <param name="user_id">(Optional) User ID. Multiple user IDs can be specified. Limit: 100</param>
+        /// <param name="user_login">(Optional) User login name. Multiple login names can be specified. Limit: 100</param>
+        /// <returns>An array of users</returns>
+        /// <exception cref="System.ArgumentException">Thrown if any of the optional string array parameters contains over 100 entries</exception>
+        /// <exception cref="Exceptions.AuthorizationRequiredException">Thrown if <see cref="TwitchAPIHelix.clientidOrOauth"/> is not set</exception>
+        /// <exception cref="Exceptions.TwitchErrorException">Thrown if Twitch returns an error</exception>
+        /// <exception cref="System.Net.WebException">Thrown if the HTTP request fails</exception>
+        public Users.UsersList GetUsers(string[] id, string[] login)
+        {
+            Users.UsersList obj;
+
+            if ((id != null && id.Length > 100) || (login != null && login.Length > 100))
+            {
+                throw new ArgumentException("Optional string array arguments can not have more than 100 entries");
+            }
+
+            try
+            {
+                string param = id != null && id.Length > 0 ? "id=" + string.Join("&id=", id) : "";
+                param += login != null && login.Length > 0 ? (param.Length > 0 ? "&" : "") + "login=" + string.Join("&login=", login) : "";
+
+                string data = this.GetData(Request_type.GET, TwitchAPIHelix.base_url + "users?" + param, "", false, null);
+
+                DataContractJsonSerializer js = new DataContractJsonSerializer(typeof(Users.UsersList));
+
+                MemoryStream ms = null;
+
+                try
+                {
+                    ms = new MemoryStream(Encoding.UTF8.GetBytes(data))
+                    {
+                        Position = 0
+                    };
+                    obj = (Users.UsersList)js.ReadObject(ms);
+                }
+                finally
+                {
+                    if (ms != null)
+                    {
+                        ms.Dispose();
+                    }
+                }
+            }
+            catch (System.Exception)
+            {
+                throw;
+            }
+
+            return obj;
+        }
+
+        /// <summary>
+        /// Gets information about one or more specified Twitch users. Users are identified by optional user IDs and/or login name.
+        /// If neither a user ID nor a login name is specified, the user is looked up by Bearer token
+        /// </summary>
+        /// <param name="user_id">(Optional) User ID. Multiple user IDs can be specified. Limit: 100</param>
+        /// <param name="user_login">(Optional) User login name. Multiple login names can be specified. Limit: 100</param>
+        /// <returns>An array of users</returns>
+        /// <exception cref="System.ArgumentException">Thrown if any of the optional string array parameters contains over 100 entries</exception>
+        /// <exception cref="Exceptions.AuthorizationRequiredException">Thrown if <see cref="TwitchAPIHelix.clientidOrOauth"/> is not set</exception>
+        /// <exception cref="Exceptions.TwitchErrorException">Thrown if Twitch returns an error</exception>
+        /// <exception cref="System.Net.WebException">Thrown if the HTTP request fails</exception>
+        public Task<Users.UsersList> GetUsersAsync(string[] id, string[] login) => Task.Run(() => this.GetUsers(id, login));
     }
 }
