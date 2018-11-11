@@ -38,6 +38,11 @@ namespace TwitchAPIHelix
         private static readonly string base_url = "https://api.twitch.tv/helix/";
 
         /// <summary>
+        /// Token validation URL
+        /// </summary>
+        private static readonly string validate_url = "https://id.twitch.tv/oauth2/validate";
+
+        /// <summary>
         /// Unix epoch
         /// </summary>
         private static readonly DateTime epoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
@@ -315,6 +320,63 @@ namespace TwitchAPIHelix
 
             return ret;
         }
+
+        /// <summary>
+        /// Checks if the OAuth token passed to the constructor of this object is still valid
+        /// </summary>
+        /// <returns>A TwitchTokenValidation object indicating the user and scopes attached to the token</returns>
+        /// <exception cref="Exceptions.OAuthRequiredException">Thrown if <see cref="TwitchAPIHelix.clientidOrOauth"/> is not set to an OAuth token</exception>
+        /// <exception cref="Exceptions.TwitchErrorException">Thrown if Twitch returns an error, which will generally indicate an invalid/expired token</exception>
+        /// <exception cref="System.Net.WebException">Thrown if the HTTP request fails</exception>
+        public TwitchTokenValidation ValidateOAuthToken()
+        {
+            if (this.clientidOrOauth == null || this.clientidOrOauth.Length == 0 || !this.isOauth)
+            {
+                throw new Exceptions.OAuthRequiredException();
+            }
+
+            TwitchTokenValidation obj;
+
+            try
+            {
+                string data = this.GetData(Request_type.GET, TwitchAPIHelix.validate_url, "", false, null);
+
+                DataContractJsonSerializer js = new DataContractJsonSerializer(typeof(TwitchTokenValidation));
+
+                MemoryStream ms = null;
+
+                try
+                {
+                    ms = new MemoryStream(Encoding.UTF8.GetBytes(data))
+                    {
+                        Position = 0
+                    };
+                    obj = (TwitchTokenValidation)js.ReadObject(ms);
+                }
+                finally
+                {
+                    if (ms != null)
+                    {
+                        ms.Dispose();
+                    }
+                }
+            }
+            catch (System.Exception)
+            {
+                throw;
+            }
+
+            return obj;
+        }
+
+        /// <summary>
+        /// Checks if the OAuth token passed to the constructor of this object is still valid
+        /// </summary>
+        /// <returns>A TwitchTokenValidation object indicating the user and scopes attached to the token</returns>
+        /// <exception cref="Exceptions.OAuthRequiredException">Thrown if <see cref="TwitchAPIHelix.clientidOrOauth"/> is not set to an OAuth token</exception>
+        /// <exception cref="Exceptions.TwitchErrorException">Thrown if Twitch returns an error, which will generally indicate an invalid/expired token</exception>
+        /// <exception cref="System.Net.WebException">Thrown if the HTTP request fails</exception>
+        public Task<TwitchTokenValidation> ValidateOAuthTokenAsync() => Task.Run<TwitchTokenValidation>(() => this.ValidateOAuthToken());
 
         /// <summary>
         /// Gets game information by game ID or name

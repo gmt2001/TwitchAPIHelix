@@ -51,6 +51,7 @@
     <Compile Include="DateRange.cs" />
     <Compile Include="Exceptions\AuthorizationRequiredException.cs" />
     <Compile Include="Exceptions\OAuthRequiredException.cs" />
+    <Compile Include="TwitchTokenValidation.cs" />
     <Compile Include="Games\GameEntry.cs" />
     <Compile Include="Games\GamesList.cs" />
     <Compile Include="Pagination.cs" />
