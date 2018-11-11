@@ -828,8 +828,8 @@ namespace TwitchAPIHelix
         /// Gets information about one or more specified Twitch users. Users are identified by optional user IDs and/or login name.
         /// If neither a user ID nor a login name is specified, the user is looked up by Bearer token
         /// </summary>
-        /// <param name="user_id">(Optional) User ID. Multiple user IDs can be specified. Limit: 100</param>
-        /// <param name="user_login">(Optional) User login name. Multiple login names can be specified. Limit: 100</param>
+        /// <param name="id">(Optional) User ID. Multiple user IDs can be specified. Limit: 100</param>
+        /// <param name="login">(Optional) User login name. Multiple login names can be specified. Limit: 100</param>
         /// <returns>An array of users</returns>
         /// <exception cref="System.ArgumentException">Thrown if any of the optional string array parameters contains over 100 entries</exception>
         /// <exception cref="Exceptions.AuthorizationRequiredException">Thrown if <see cref="TwitchAPIHelix.clientidOrOauth"/> is not set</exception>
@@ -883,8 +883,8 @@ namespace TwitchAPIHelix
         /// Gets information about one or more specified Twitch users. Users are identified by optional user IDs and/or login name.
         /// If neither a user ID nor a login name is specified, the user is looked up by Bearer token
         /// </summary>
-        /// <param name="user_id">(Optional) User ID. Multiple user IDs can be specified. Limit: 100</param>
-        /// <param name="user_login">(Optional) User login name. Multiple login names can be specified. Limit: 100</param>
+        /// <param name="id">(Optional) User ID. Multiple user IDs can be specified. Limit: 100</param>
+        /// <param name="login">(Optional) User login name. Multiple login names can be specified. Limit: 100</param>
         /// <returns>An array of users</returns>
         /// <exception cref="System.ArgumentException">Thrown if any of the optional string array parameters contains over 100 entries</exception>
         /// <exception cref="Exceptions.AuthorizationRequiredException">Thrown if <see cref="TwitchAPIHelix.clientidOrOauth"/> is not set</exception>
