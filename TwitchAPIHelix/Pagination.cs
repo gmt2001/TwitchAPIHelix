@@ -16,15 +16,27 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-using System;
+using System.Runtime.Serialization;
 
-namespace TwitchAPIHelix.Exceptions
+namespace TwitchAPIHelix
 {
     /// <summary>
-    /// Indicates an OAuth token is required for the requested API call
+    /// Represents a pagination cursor
     /// </summary>
-    [Serializable]
-    public class OAuthRequiredException : AuthorizationRequiredException
+    [DataContract]
+    public class Pagination
     {
+        /// <summary>
+        /// A cursor value, to be used in a subsequent request to specify the starting point of the next set of results
+        /// </summary>
+        [DataMember]
+        public string cursor;
+
+        /// <summary>
+        /// Default Constructor
+        /// </summary>
+        internal Pagination()
+        {
+        }
     }
 }

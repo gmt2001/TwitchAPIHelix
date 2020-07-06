@@ -1,4 +1,4 @@
-﻿/*
+/*
  *  TwitchAPIHelix - A library to access the Twitch Helix API for .NET 4.7/Mono
  *  Copyright (C) 2018 gmt2001 - https://keybase.io/gmt2001
  *
@@ -15,41 +15,45 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 using System.Runtime.Serialization;
-#pragma warning disable 0649
+
 namespace TwitchAPIHelix
 {
     /// <summary>
-    /// Represents an error thrown by Twitch
+    /// Represents an entry containing data about a valid Twitch token
     /// </summary>
     [DataContract]
-    internal class TwitchError
+    public class TwitchTokenValidation
     {
         /// <summary>
-        /// The HTTP error description
+        /// The client ID of the authorized Twitch application that created the token
         /// </summary>
         [DataMember]
-        public string error;
+        public string client_id;
 
         /// <summary>
-        /// The error message from Twitch
+        /// The login name of the user
         /// </summary>
         [DataMember]
-        public string message;
+        public string login;
 
         /// <summary>
-        /// The HTTP response code
+        /// The authorized scopes for this token
         /// </summary>
         [DataMember]
-        public int status;
+        public string[] scopes;
+
+        /// <summary>
+        /// The user ID attached to this token
+        /// </summary>
+        [DataMember]
+        public string user_id;
 
         /// <summary>
         /// Default constructor
         /// </summary>
-        internal TwitchError()
+        internal TwitchTokenValidation()
         {
         }
     }
 }
-#pragma warning restore 0649

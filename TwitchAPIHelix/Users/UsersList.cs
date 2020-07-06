@@ -16,15 +16,27 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-using System;
+using System.Runtime.Serialization;
 
-namespace TwitchAPIHelix.Exceptions
+namespace TwitchAPIHelix.Users
 {
     /// <summary>
-    /// Indicates an OAuth token is required for the requested API call
+    /// Represents an array of user entries
     /// </summary>
-    [Serializable]
-    public class OAuthRequiredException : AuthorizationRequiredException
+    [DataContract]
+    public class UsersList
     {
+        /// <summary>
+        /// An array of user entries
+        /// </summary>
+        [DataMember]
+        public UserEntry[] data;
+
+        /// <summary>
+        /// Default Constructor
+        /// </summary>
+        internal UsersList()
+        {
+        }
     }
 }

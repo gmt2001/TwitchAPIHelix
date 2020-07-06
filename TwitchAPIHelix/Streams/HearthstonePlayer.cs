@@ -18,18 +18,24 @@
 
 using System.Runtime.Serialization;
 
-namespace TwitchAPIHelix
+namespace TwitchAPIHelix.Streams
 {
     /// <summary>
-    /// Base class representing a response from the Twitch API
+    /// Represents a Hearthstone player
     /// </summary>
     [DataContract]
-    public class TwitchAPIResponse
+    public class HearthstonePlayer
     {
         /// <summary>
-        /// Default constructor
+        /// Metadata about the Hearthstone hero selected by the broadcaster/opponent. null if empty
         /// </summary>
-        internal TwitchAPIResponse()
+        [DataMember]
+        public HearthstoneHero hero;
+
+        /// <summary>
+        /// Default Constructor
+        /// </summary>
+        internal HearthstonePlayer()
         {
         }
     }

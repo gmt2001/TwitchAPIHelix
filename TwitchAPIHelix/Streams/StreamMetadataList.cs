@@ -16,15 +16,31 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-using System;
+using System.Runtime.Serialization;
 
-namespace TwitchAPIHelix.Exceptions
+namespace TwitchAPIHelix.Streams
 {
     /// <summary>
-    /// Indicates an OAuth token is required for the requested API call
+    /// Represents an array of stream metadata
     /// </summary>
-    [Serializable]
-    public class OAuthRequiredException : AuthorizationRequiredException
+    [DataContract]
+    public class StreamMetadataList
     {
+        /// <summary>
+        /// An array of stream metadata
+        /// </summary>
+        public StreamMetadataEntry[] data;
+
+        /// <summary>
+        /// A cursor value, to be used in a subsequent request to specify the starting point of the next set of results
+        /// </summary>
+        public Pagination pagination;
+
+        /// <summary>
+        /// Default Constructor
+        /// </summary>
+        internal StreamMetadataList()
+        {
+        }
     }
 }

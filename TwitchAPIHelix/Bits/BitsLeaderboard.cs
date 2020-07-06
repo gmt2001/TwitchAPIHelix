@@ -16,15 +16,39 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-using System;
+using System.Runtime.Serialization;
 
-namespace TwitchAPIHelix.Exceptions
+namespace TwitchAPIHelix.Bits
 {
     /// <summary>
-    /// Indicates an OAuth token is required for the requested API call
+    /// Represents a bits leaderboard
     /// </summary>
-    [Serializable]
-    public class OAuthRequiredException : AuthorizationRequiredException
+    [DataContract]
+    public class BitsLeaderboard
     {
+        /// <summary>
+        /// An array of leaderboard entries
+        /// </summary>
+        [DataMember]
+        public BitsLeaderboardEntry[] data;
+
+        /// <summary>
+        /// The date range being queried
+        /// </summary>
+        [DataMember]
+        public DateRange date_range;
+
+        /// <summary>
+        /// Total number of results (users) returned. This is count or the total number of entries in the leaderboard, whichever is less
+        /// </summary>
+        [DataMember]
+        public int total;
+
+        /// <summary>
+        /// Default constructor
+        /// </summary>
+        internal BitsLeaderboard()
+        {
+        }
     }
 }

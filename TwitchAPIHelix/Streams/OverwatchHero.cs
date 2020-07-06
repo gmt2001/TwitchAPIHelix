@@ -16,15 +16,39 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-using System;
+using System.Runtime.Serialization;
 
-namespace TwitchAPIHelix.Exceptions
+namespace TwitchAPIHelix.Streams
 {
     /// <summary>
-    /// Indicates an OAuth token is required for the requested API call
+    /// Represents an Overwatch hero
     /// </summary>
-    [Serializable]
-    public class OAuthRequiredException : AuthorizationRequiredException
+    [DataContract]
+    public class OverwatchHero
     {
+        /// <summary>
+        /// Role of the Overwatch hero
+        /// </summary>
+        [DataMember]
+        public string role;
+
+        /// <summary>
+        /// Name of the Overwatch hero
+        /// </summary>
+        [DataMember]
+        public string name;
+
+        /// <summary>
+        /// Ability being used by the broadcaster
+        /// </summary>
+        [DataMember]
+        public string ability;
+
+        /// <summary>
+        /// Default Constructor
+        /// </summary>
+        internal OverwatchHero()
+        {
+        }
     }
 }

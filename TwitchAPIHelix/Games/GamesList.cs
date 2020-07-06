@@ -24,7 +24,7 @@ namespace TwitchAPIHelix.Games
     /// Represents an array of games
     /// </summary>
     [DataContract]
-    public class GamesList : TwitchAPIResponse
+    public class GamesList
     {
         /// <summary>
         /// An array of games
@@ -38,7 +38,7 @@ namespace TwitchAPIHelix.Games
         /// <para>This field is only available on GetTopGames requests</para>
         /// </summary>
         [DataMember]
-        public string pagination;
+        public Pagination pagination;
 
         /// <summary>
         /// Default constructor

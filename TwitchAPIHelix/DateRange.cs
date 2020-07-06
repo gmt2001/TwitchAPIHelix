@@ -16,15 +16,33 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-using System;
+using System.Runtime.Serialization;
 
-namespace TwitchAPIHelix.Exceptions
+namespace TwitchAPIHelix
 {
     /// <summary>
-    /// Indicates an OAuth token is required for the requested API call
+    /// Represents a date range
     /// </summary>
-    [Serializable]
-    public class OAuthRequiredException : AuthorizationRequiredException
+    [DataContract]
+    public class DateRange
     {
+        /// <summary>
+        /// Start of the date range for the returned data in RFC 3339 format
+        /// </summary>
+        [DataMember]
+        public string started_at;
+
+        /// <summary>
+        /// End of the date range for the returned data in RFC 3339 format
+        /// </summary>
+        [DataMember]
+        public string ended_at;
+
+        /// <summary>
+        /// Default constructor
+        /// </summary>
+        internal DateRange()
+        {
+        }
     }
 }

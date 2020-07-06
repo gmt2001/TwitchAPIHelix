@@ -16,15 +16,30 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-using System;
+using System.Runtime.Serialization;
 
-namespace TwitchAPIHelix.Exceptions
+namespace TwitchAPIHelix.Streams
 {
     /// <summary>
-    /// Indicates an OAuth token is required for the requested API call
+    /// Represents the streamer's Hearthstone data
     /// </summary>
-    [Serializable]
-    public class OAuthRequiredException : AuthorizationRequiredException
+    [DataContract]
+    public class HearthstoneData
     {
+        /// <summary>
+        /// Hearthstone metadata about the broadcaster
+        /// </summary>
+        [DataMember]
+        public HearthstonePlayer broadcaster;
+
+        /// <summary>
+        /// Hearthstone metadata about the broadcaster’s opponent
+        /// </summary>
+        [DataMember]
+        public HearthstonePlayer opponent;
+
+        internal HearthstoneData()
+        {
+        }
     }
 }

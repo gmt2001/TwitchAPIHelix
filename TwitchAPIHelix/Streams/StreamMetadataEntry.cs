@@ -17,39 +17,50 @@
  */
 
 using System.Runtime.Serialization;
-#pragma warning disable 0649
-namespace TwitchAPIHelix
+
+namespace TwitchAPIHelix.Streams
 {
     /// <summary>
-    /// Represents an error thrown by Twitch
+    /// Represents a stream's metadata
     /// </summary>
     [DataContract]
-    internal class TwitchError
+    public class StreamMetadataEntry
     {
         /// <summary>
-        /// The HTTP error description
+        /// User ID of the streamer (broadcaster)
         /// </summary>
         [DataMember]
-        public string error;
+        public string user_id;
 
         /// <summary>
-        /// The error message from Twitch
+        /// Login name corresponding to <see cref="user_id"/>
         /// </summary>
         [DataMember]
-        public string message;
+        public string user_name;
 
         /// <summary>
-        /// The HTTP response code
+        /// ID of the game being played on the stream: 488552 (Overwatch), 138585 (Hearthstone), or null (neither Overwatch nor Hearthstone metadata is available)
         /// </summary>
         [DataMember]
-        public int status;
+        public string game_id;
 
         /// <summary>
-        /// Default constructor
+        /// Object containing the Overwatch metadata, if available; otherwise, null
         /// </summary>
-        internal TwitchError()
+        [DataMember]
+        public OverwatchData overwatch;
+
+        /// <summary>
+        /// Object containing the Hearthstone metadata, if available; otherwise, null
+        /// </summary>
+        [DataMember]
+        public HearthstoneData hearthstone;
+
+        /// <summary>
+        /// Default Constructor
+        /// </summary>
+        internal StreamMetadataEntry()
         {
         }
     }
 }
-#pragma warning restore 0649

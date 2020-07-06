@@ -26,6 +26,10 @@ namespace TwitchAPIHelix.Exceptions
     [Serializable]
     public class TwitchErrorException : ApplicationException
     {
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="message">The error message returned by Twitch</param>
         public TwitchErrorException(string message) : base(message)
         {
         }

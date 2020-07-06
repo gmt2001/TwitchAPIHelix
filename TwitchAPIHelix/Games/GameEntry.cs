@@ -24,7 +24,7 @@ namespace TwitchAPIHelix.Games
     /// Represents an entry containing data about a game
     /// </summary>
     [DataContract]
-    public class GameEntry : TwitchAPIResponse
+    public class GameEntry
     {
         /// <summary>
         /// Template URL for the game’s box art

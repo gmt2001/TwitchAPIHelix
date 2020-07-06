@@ -17,39 +17,44 @@
  */
 
 using System.Runtime.Serialization;
-#pragma warning disable 0649
-namespace TwitchAPIHelix
+
+namespace TwitchAPIHelix.Bits
 {
     /// <summary>
-    /// Represents an error thrown by Twitch
+    /// Represents an entry in a bits leaderboard
     /// </summary>
     [DataContract]
-    internal class TwitchError
+    public class BitsLeaderboardEntry
     {
         /// <summary>
-        /// The HTTP error description
+        /// ID of the user (viewer) in the leaderboard entry
         /// </summary>
         [DataMember]
-        public string error;
+        public string user_id;
 
         /// <summary>
-        /// The error message from Twitch
+        /// Login name corresponding to <see cref="user_id"/>
         /// </summary>
         [DataMember]
-        public string message;
+        public string user_name;
 
         /// <summary>
-        /// The HTTP response code
+        /// Leaderboard rank of the user
         /// </summary>
         [DataMember]
-        public int status;
+        public int rank;
+
+        /// <summary>
+        /// Leaderboard score (number of Bits) of the user
+        /// </summary>
+        [DataMember]
+        public int score;
 
         /// <summary>
         /// Default constructor
         /// </summary>
-        internal TwitchError()
+        internal BitsLeaderboardEntry()
         {
         }
     }
 }
-#pragma warning restore 0649
